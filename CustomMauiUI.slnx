@@ -1,4 +1,7 @@
 <Solution>
-  <Project Path="MauiUiComponents/MauiUiComponents.csproj" Id="e348f38e-55d4-4ba9-b115-14fd2b9bd9f3" />
+  <Project Path="../Library/LocalStorage/SQLiteStorage/SQLiteStorage.csproj" />
+  <Project Path="MauiUiComponents/MauiUiComponents.csproj" Id="e348f38e-55d4-4ba9-b115-14fd2b9bd9f3">
+    <BuildDependency Project="../Library/LocalStorage/SQLiteStorage/SQLiteStorage.csproj" />
+  </Project>
   <Project Path="MauiUiSettings/MauiUiSettings.csproj" />
 </Solution>
