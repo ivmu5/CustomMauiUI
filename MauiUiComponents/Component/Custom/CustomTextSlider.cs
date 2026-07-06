@@ -8,6 +8,8 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
 {
     private readonly ComponentStore _componentStore;
 
+    public readonly ValueSynchronizer<TValue> ValueSynchronizer;
+
     public BaseLabel TextLabel { get; private set; }
     public BaseBorder<BaseEntry<TValue>> ValueEntryBorder { get; private set; }
     public BaseSlider<TValue> ValueSlider { get; private set; }
@@ -86,7 +88,7 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
     {
         _componentStore = componentStore;
 
-        ValueSlider = _componentStore.Base.Slider();
+        ValueSlider = _componentStore.Base.Slider<TValue>();
         TextLabel ??= _componentStore.Base.Label();
         ValueEntryBorder = _componentStore.Base.Entry<TValue>().WithBorder(componentStore);
 
@@ -95,24 +97,14 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
         MaxValue = TValue.MaxValue;
 
         BuildLayout();
-        SetBinding();
-    }
 
-    private void SetBinding()
-    {
-        this
-            .Bind(
-                t => t.BindableValue,
+        ValueSynchronizer = new ValueSynchronizer<TValue>(
+            new List<IBindableValue<TValue>>
+            {
+                this,
                 ValueEntryBorder.View,
-                en => en.Value,
-                BindingMode.TwoWay)
-            .Bind(
-                t => t.BindableValue,
-                ValueSlider,
-                vs => vs.Value,
-                BindingMode.TwoWay,
-                d => TValue.CreateSaturating(d),
-                v => double.CreateSaturating(v));
+                ValueSlider
+            });
     }
 
     private void BuildLayout()
@@ -133,6 +125,9 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
 
     public void AddResetValueButton(TValue resetValue)
     {
+        if (ResetButton != null)
+            throw new InvalidOperationException("Reset button already exists.");
+
         DefaultValue = resetValue;
 
         ResetButton = _componentStore.Base

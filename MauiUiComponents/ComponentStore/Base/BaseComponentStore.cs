@@ -1,4 +1,5 @@
 ﻿using MauiUiSettings;
+using System.Numerics;
 
 namespace MauiUiComponents;
 
@@ -64,12 +65,13 @@ public class BaseComponentStore
             .BorderRoundRectangleBind(_uiServices);
     }
 
-    public BaseSlider Slider(
+    public BaseSlider<TValue> Slider<TValue>(
         ColorVariant minimumTrackColor = ColorVariant.Primary,
         ColorVariant maximumTrackColor = ColorVariant.Secondary,
         ColorVariant thumbColor = ColorVariant.Primary)
+        where TValue : INumber<TValue>
     {
-        var slider = new BaseSlider();
+        var slider = new BaseSlider<TValue>();
         return slider
             .ColorBind(_uiServices, x => x.MinimumTrackColor, minimumTrackColor)
             .ColorBind(_uiServices, x => x.MaximumTrackColor, maximumTrackColor)

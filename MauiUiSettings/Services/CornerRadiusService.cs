@@ -12,7 +12,7 @@ public class CornerRadiusService : UiServiceBase<CornerRadiusService>
     public int CornerRadius
     {
         get => (int)GetValue(CornerRadiusProperty);
-        private set => SetValue(CornerRadiusProperty, value);
+        set => SetValue(CornerRadiusProperty, value);
     }
     public static readonly BindableProperty CornerRadiusProperty = CreateBindableProperty<int>(nameof(CornerRadius));
 

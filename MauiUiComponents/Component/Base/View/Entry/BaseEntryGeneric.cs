@@ -2,15 +2,15 @@
 
 namespace MauiUiComponents;
 
-public abstract class BaseEntry<TValue> : BaseEntry, IValueView<TValue>
+public abstract class BaseEntry<TValue> : BaseEntry, IBindableValue<TValue>
 {
-    public TValue Value
+    public TValue BindableValue
     {
-        get => (TValue)GetValue(ValueProperty);
-        set => SetValue(ValueProperty, value);
+        get => (TValue)GetValue(BindableValueProperty);
+        set => SetValue(BindableValueProperty, value);
     }
-    public static readonly BindableProperty ValueProperty =
-        BindableProperty.Create(nameof(Value), typeof(TValue), typeof(BaseEntry<TValue>));
+    public static readonly BindableProperty BindableValueProperty =
+        BindableProperty.Create(nameof(BindableValue), typeof(TValue), typeof(BaseEntry<TValue>));
 
     private bool _isInternalUpdate;
 
@@ -30,14 +30,14 @@ public abstract class BaseEntry<TValue> : BaseEntry, IValueView<TValue>
 
     private void OnValueChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(Value))
+        if (e.PropertyName != nameof(BindableValue))
             return;
 
         if (_isInternalUpdate)
             return;
 
         SafeUpdate(
-            () => Text = Format(Value));
+            () => Text = Format(BindableValue));
     }
 
     private void OnTextChanged(object? sender, TextChangedEventArgs e)
@@ -50,10 +50,10 @@ public abstract class BaseEntry<TValue> : BaseEntry, IValueView<TValue>
             SafeUpdate(() => Text = filteredText);
 
         var newValue = Parse(filteredText);
-        if (EqualityComparer<TValue>.Default.Equals(Value, newValue))
+        if (EqualityComparer<TValue>.Default.Equals(BindableValue, newValue))
             return;
 
-        SafeUpdate(() => Value = newValue);
+        SafeUpdate(() => BindableValue = newValue);
     }
 
     private void SafeUpdate(Action action)

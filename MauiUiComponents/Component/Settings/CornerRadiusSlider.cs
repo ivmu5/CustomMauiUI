@@ -1,6 +1,6 @@
 ﻿using MauiUiComponents.Resources.Localization;
 using MauiUiSettings;
-using SQLiteStorage;
+using System.ComponentModel;
 
 namespace MauiUiComponents;
 
@@ -19,9 +19,8 @@ public class CornerRadiusSlider : CustomTextSlider<int>
             CornerRadiusService.MinCornerRadius,
             CornerRadiusService.MaxCornerRadius);
 
-        Value = _services.CornerRadiusService.CornerRadius;
-        ValueChanged += OnValueChanged;
-
+        BindableValue = _services.CornerRadiusService.CornerRadius;
+        PropertyChanged += OnPropertyChanged;
         _services.CornerRadiusService.PropertyChanged += OnCornerRadiusChanged;
 
         AddResetValueButton(CornerRadiusService.DefaultCornerRadius);
@@ -31,15 +30,16 @@ public class CornerRadiusSlider : CustomTextSlider<int>
             nameof(Settings.CornerRadiusSetting));
     }
 
-    private void OnValueChanged(object? sender, ValueChangedEventArgs<int> e)
+    private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        _services.CornerRadiusService.SetCornerRadius(e.NewValue);
+        if (e.PropertyName == nameof(BindableValue))
+            _services.CornerRadiusService.SetCornerRadius(BindableValue);
     }
 
     private void OnCornerRadiusChanged(object? sender, EventArgs e)
     {
         var cornerRadius = _services.CornerRadiusService.CornerRadius;
-        if (Value != cornerRadius)
-            Value = cornerRadius;
+        if (BindableValue != cornerRadius)
+            BindableValue = cornerRadius;
     }
 }
