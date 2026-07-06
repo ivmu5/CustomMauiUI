@@ -39,6 +39,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\LocalStorage\SQLiteStorage\SQLiteStorage.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Compile Update="Resources\Localization\Enum\EnumResources.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>

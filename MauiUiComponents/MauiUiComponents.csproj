@@ -32,6 +32,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\LocalStorage\SQLiteStorage\SQLiteStorage.csproj" />
 	  <ProjectReference Include="..\MauiUiSettings\MauiUiSettings.csproj" />
 	</ItemGroup>
 
