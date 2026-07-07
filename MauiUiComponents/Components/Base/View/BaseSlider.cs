@@ -28,7 +28,7 @@ public class BaseSlider<TValue> : Slider, IBindableValue<TValue>
             nameof(BindableValue),
             typeof(TValue),
             typeof(BaseSlider<TValue>),
-            default(TValue)!,
+            default(TValue),
             propertyChanged: OnBindableValueChanged);
 
     private static void OnBindableValueChanged(

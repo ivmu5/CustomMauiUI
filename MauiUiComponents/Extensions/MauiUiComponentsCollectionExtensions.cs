@@ -7,6 +7,7 @@ public static class MauiUiComponentsCollectionExtensions
     {
         services.AddSingleton<ComponentStore>();
         services.AddSingleton<ResourcesStore>();
+        services.AddSingleton<SettingsPage>();
 
         return services;
     }
