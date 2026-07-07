@@ -9,53 +9,59 @@ public static class BindingExtensions
     private static readonly ConcurrentDictionary<string, BindableProperty>
         _propertyCache = new();
 
-    public static T Bind<T, TObject, TSource, TTarget>(
-        this T bindable,
-        Expression<Func<T, TTarget>> viewExpression,
-        TObject bindableObject,
-        Expression<Func<TObject, TSource>> sourceExpression,
+    public static TBindableObject Bind<TBindableObject, TSourceObject, TSourceValue, TBindableValue>(
+        this TBindableObject bindable,
+        Expression<Func<TBindableObject, TBindableValue>> bindablePropertyExpression,
+        TSourceObject sourceObject,
+        Expression<Func<TSourceObject, TSourceValue>> sourcePropertyExpression,
         BindingMode bindingMode = BindingMode.Default,
-        Func<TSource, TTarget>? convertToTarget = null,
-        Func<TTarget, TSource>? convertBackToSource = null)
-        where T : BindableObject
-        where TObject : BindableObject
+        Func<TSourceValue, TBindableValue>? sourceToBindable = null,
+        Func<TBindableValue, TSourceValue>? bindableToSource = null)
+        where TBindableObject : BindableObject
+        where TSourceObject : BindableObject
     {
-        Expression body = sourceExpression.Body;
-        var sourceType = typeof(TSource);
-        var targetType = typeof(TTarget);
+        Expression sourceBody = sourcePropertyExpression.Body;
+
+        var sourceValueType = typeof(TSourceValue);
+        var bindableValueType = typeof(TBindableValue);
+
         IValueConverter? converter = null;
 
-        if (body is UnaryExpression unary)
-            body = unary.Operand;
+        if (sourceBody is UnaryExpression unary)
+            sourceBody = unary.Operand;
 
-        if (body is not MemberExpression member)
+        if (sourceBody is not MemberExpression member)
+        {
             throw new InvalidOperationException(
                 "Expression must be property access.");
-
-        if (convertToTarget is not null || convertBackToSource is not null)
-        {
-            converter = new DelegateValueConverter<TSource, TTarget>(
-                convertToTarget,
-                convertBackToSource);
         }
 
-        if (!targetType.IsAssignableFrom(sourceType) &&
+        if (sourceToBindable is not null || bindableToSource is not null)
+        {
+            converter = new DelegateValueConverter<TSourceValue, TBindableValue>(
+                sourceToBindable,
+                bindableToSource);
+        }
+
+        if (!bindableValueType.IsAssignableFrom(sourceValueType) &&
             converter is null)
         {
             throw new InvalidOperationException(
-                $"Cannot bind {sourceType.Name} to {targetType.Name} without converter.");
+                $"Cannot bind {sourceValueType.Name} to {bindableValueType.Name} without converter.");
         }
 
         bindable.SetBinding(
-            viewExpression.GetBindableProperty(),
+            bindablePropertyExpression.GetBindableProperty(),
             new Binding(
                 member.Member.Name,
                 bindingMode,
                 converter,
-                source: bindableObject));
+                source: sourceObject));
 
         return bindable;
     }
+
+
     public static BindableProperty GetBindableProperty(
         this Type type,
         string propertyName)

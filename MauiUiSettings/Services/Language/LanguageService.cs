@@ -4,7 +4,7 @@ using System.Globalization;
 
 public class LanguageService : UiServiceBase<LanguageService>
 {
-    public const SupportedLanguage DefaultLanguage = SupportedLanguage.English;
+    public const SupportedLanguage DefaultLanguage = SupportedLanguage.Russian;
 
     public SupportedLanguage Language
     {

@@ -133,7 +133,7 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
         ResetButton = _componentStore.Base
             .Button(fontVariant: MauiUiSettings.FontVariant.Icon)
             .TextBind(
-                _componentStore.ResourcesStore.SettingsLocalization,
+                _componentStore.ResourcesStore.MaterialSymbolsManager,
                 nameof(MaterialSymbols.Refresh));
         ResetButton.Clicked +=
             (s, e) => BindableValue = DefaultValue;

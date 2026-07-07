@@ -1,8 +1,9 @@
 ﻿using MauiUiSettings;
+using System.ComponentModel;
 
 namespace MauiUiComponents;
 
-public class CustomShell<TView> : BasePage<Grid>
+public class CustomShell<TView> : BasePage<Grid>, IDisposable
     where TView : View, ITextComponent, new()
 {
     public readonly List<ToggleViewStyle<TView>> BottomBarToggleStyles = new()
@@ -18,11 +19,14 @@ public class CustomShell<TView> : BasePage<Grid>
     };
 
     private readonly Grid _rootGrid;
+    private readonly ScrollView _contentScrollView;
     private readonly ContentView _contentHost;
     private readonly BaseBorder<ToggleGroup<FlexLayout>> _bottomBarBorder;
 
     private readonly Dictionary<string, Func<ContentPage>> _pages = new();
     private readonly Dictionary<string, ToggleGridView<TView>> _navigationView = new();
+
+    public WindowOrientation CurrentOrientation { get; private set; }
 
 
 
@@ -38,33 +42,109 @@ public class CustomShell<TView> : BasePage<Grid>
 
         _rootGrid = new();
         _contentHost = new();
-        _bottomBarBorder = componentStore.Custom.ToggleGroup.ToggleGroup<FlexLayout>().WithBorder(_componentStore);
-
-        _rootGrid.Margin = 10;
+        _contentScrollView = new();
+        _bottomBarBorder = componentStore.Custom.ToggleGroup
+            .ToggleGroup<FlexLayout>()
+            .WithBorder(_componentStore)
+            .ColorBackgroundBind(uiServices, ColorVariant.Blur);
 
         BuildLayout();
     }
 
     private void BuildLayout()
     {
+        _bottomBarBorder
+            .ViewCenter()
+            .ViewAddShadow(
+                    radius: 10f,
+                    offsetX: 0f,
+                    offsetY: 0f);
+
+        _bottomBarBorder.Margin = 10;
+
+        _contentScrollView.Content = _contentHost;
+        _contentScrollView.Padding = 10;
+
+        _rootGrid.AddChild(_contentScrollView);
+        _rootGrid.AddChild(_bottomBarBorder);
+
+        AddChildren(_rootGrid);
+        SnackbarService.SetBaseAnchor(_bottomBarBorder);
+
+        SetOrientation(_uiServices.WindowService.Orientation);
+        _uiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
+    }
+
+    private void OnWindowsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(WindowService.Orientation))
+            return;
+
+        SetOrientation(
+            _uiServices.WindowService.Orientation);
+    }
+
+    public void SetOrientation(WindowOrientation orientation)
+    {
+        if (CurrentOrientation == orientation)
+            return;
+
+        CurrentOrientation = orientation;
+
+        switch (CurrentOrientation)
+        {
+            case WindowOrientation.Horizontal:
+                ConfigureLandscape();
+                break;
+
+            default:
+                ConfigurePortrait();
+                break;
+        }
+    }
+
+    private void ConfigurePortrait()
+    {
+        _rootGrid.RowDefinitions.Clear();
+        _rootGrid.ColumnDefinitions.Clear();
+
         _rootGrid
             .AddStarRow()
             .AddAutoRow();
 
-        _bottomBarBorder.ViewCenter();
 
-        _rootGrid.AddChild(_contentHost, 0, rowSpan: 2);
-        _rootGrid.AddChild(
-            _bottomBarBorder
-                .ViewAddShadow(
-                    radius: 10f,
-                    offsetX: 0f,
-                    offsetY: 0f),
-            1);
+        _contentScrollView
+            .GridPosition(0, 0)
+            .GridRowSpan(2);
 
-        AddChildren(_rootGrid);
+        _bottomBarBorder
+            .GridPosition(1, 0);
 
-        SnackbarService.SetBaseAnchor(_bottomBarBorder);
+        _bottomBarBorder.View.ToggleLayout.FlexRow();
+
+        _uiServices.StatusBarService.IsVisible = true;
+    }
+
+    private void ConfigureLandscape()
+    {
+        _rootGrid.RowDefinitions.Clear();
+        _rootGrid.ColumnDefinitions.Clear();
+
+        _rootGrid
+            .AddAutoColumn()
+            .AddStarColumn();
+
+
+        _bottomBarBorder
+            .GridPosition(0, 0);
+
+        _contentScrollView
+            .GridPosition(0, 1)
+            .GridRowSpan(0);
+
+        _bottomBarBorder.View.ToggleLayout.FlexColumn();
+
+        _uiServices.StatusBarService.IsVisible = false;
     }
 
     public void AddPage(
@@ -97,5 +177,10 @@ public class CustomShell<TView> : BasePage<Grid>
         var page = factory();
 
         _contentHost.Content = page.Content;
+    }
+
+    public void Dispose()
+    {
+        _uiServices.WindowService.PropertyChanged -= OnWindowsPropertyChanged;
     }
 }
