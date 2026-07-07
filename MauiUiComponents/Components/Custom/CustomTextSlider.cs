@@ -54,7 +54,6 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
         get => (TValue)GetValue(BindableValueProperty);
         set => SetValue(BindableValueProperty, value);
     }
-
     public static readonly BindableProperty BindableValueProperty =
         BindableProperty.Create(
             nameof(BindableValue),
@@ -110,6 +109,7 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
     private void BuildLayout()
     {
         TextLabel.ViewCenter().TextCenter();
+        TextLabel.Margin = new Thickness(10, 0);
 
         ValueEntryBorder.HorizontalOptions = LayoutOptions.Fill;
         ValueEntryBorder.View.TextCenter();

@@ -1,108 +1,166 @@
 ﻿namespace MauiUiComponents;
 
-public class CustomDropdown<TItem> : Grid
+public class CustomDropdown<TItem> : BaseGrid
 {
-    private readonly Border _header;
-    private readonly Label _selectedLabel;
-    private readonly CollectionView _itemsView;
+    private readonly IOverlayService _overlayService;
 
-    private IReadOnlyList<TItem> _items = [];
-    private TItem? _selectedItem;
-    private bool _isOpened;
+    private readonly BaseBorder<BaseLabel> _selectedLabelBorder;
 
-    public CustomDropdown()
-    {
-        RowDefinitions =
-        [
-            new(GridLength.Auto),
-            new(GridLength.Auto)
-        ];
-
-        _selectedLabel = new Label();
-
-        _header = new Border
-        {
-            Padding = 12,
-            Content = _selectedLabel
-        };
-
-        _itemsView = new CollectionView
-        {
-            IsVisible = false,
-            SelectionMode = SelectionMode.Single
-        };
-
-        _itemsView.SelectionChanged += OnSelectionChanged;
-
-        var tap = new TapGestureRecognizer();
-        tap.Tapped += (_, _) => IsOpened = !IsOpened;
-
-        _header.GestureRecognizers.Add(tap);
-
-        Add(_header);
-        Add(_itemsView);
-
-        this.SetRow(_itemsView, 1);
-    }
-
-    public event EventHandler<TItem>? SelectionChanged;
-
-    public Func<TItem, string> DisplayText { get; set; }
-        = item => item?.ToString() ?? "";
+    private CollectionView? itemsView;
 
     public IReadOnlyList<TItem> ItemsSource
     {
-        get => _items;
-        set
-        {
-            _items = value;
-            _itemsView.ItemsSource = value;
-        }
+        get => (IReadOnlyList<TItem>?)GetValue(ItemsSourceProperty);
+        set => SetValue(ItemsSourceProperty, value);
+    } = Array.Empty<TItem>();
+    public static readonly BindableProperty ItemsSourceProperty =
+        BindableProperty.Create(
+            nameof(ItemsSource),
+            typeof(IReadOnlyList<TItem>),
+            typeof(CustomDropdown<TItem>),
+            propertyChanged: OnItemsChanged);
+
+    private static void OnItemsChanged(
+        BindableObject bindable,
+        object oldValue,
+        object newValue)
+    {
+        var dropdown = (CustomDropdown<TItem>)bindable;
+
+        if (dropdown.itemsView != null)
+            dropdown.itemsView.ItemsSource = (IReadOnlyList<TItem>?)newValue;
     }
+
 
     public TItem? SelectedItem
     {
-        get => _selectedItem;
-        set
-        {
-            if (EqualityComparer<TItem>.Default.Equals(_selectedItem, value))
-                return;
-
-            _selectedItem = value;
-
-            _selectedLabel.Text =
-                value is null
-                    ? ""
-                    : DisplayText(value);
-
-            _itemsView.SelectedItem = value;
-        }
+        get => (TItem?)GetValue(SelectedItemProperty);
+        set => SetValue(SelectedItemProperty, value);
     }
+    public static readonly BindableProperty SelectedItemProperty =
+        BindableProperty.Create(
+            nameof(SelectedItem),
+            typeof(TItem),
+            typeof(CustomDropdown<TItem>),
+            default(TItem),
+            BindingMode.TwoWay,
+            propertyChanged: OnSelectedChanged);
+
+    private static void OnSelectedChanged(
+        BindableObject bindable,
+        object oldValue,
+        object newValue)
+    {
+        var dropdown = (CustomDropdown<TItem>)bindable;
+
+        dropdown._selectedLabelBorder.View.Text =
+            newValue is TItem item
+                ? dropdown.DisplayText(item)
+                : string.Empty;
+    }
+
 
     public bool IsOpened
     {
-        get => _isOpened;
-        set
-        {
-            if (_isOpened == value)
-                return;
+        get => (bool)GetValue(IsOpenedProperty);
+        set => SetValue(IsOpenedProperty, value);
+    }
+    public static readonly BindableProperty IsOpenedProperty =
+        BindableProperty.Create(
+            nameof(IsOpened),
+            typeof(bool),
+            typeof(CustomDropdown<TItem>),
+            false,
+            BindingMode.TwoWay,
+            propertyChanged: OnOpenedChanged);
 
-            _isOpened = value;
+    private static void OnOpenedChanged(
+        BindableObject bindable,
+        object oldValue,
+        object newValue)
+    {
+        var dropdown = (CustomDropdown<TItem>)bindable;
 
-            _itemsView.IsVisible = value;
-        }
+        if ((bool)newValue)
+            dropdown.ShowItems();
+        else
+            dropdown.HideItems();
     }
 
-    private void OnSelectionChanged(
-        object? sender,
-        SelectionChangedEventArgs e)
+    private void ShowItems()
     {
-        if (e.CurrentSelection.FirstOrDefault() is not TItem item)
+        if (itemsView != null)
             return;
 
-        SelectedItem = item;
-        IsOpened = false;
+        itemsView = new CollectionView
+        {
+            ItemsSource = ItemsSource,
+            SelectionMode = SelectionMode.Single,
+            //ItemTemplate = new DataTemplate(() =>
+            //{
+            //    var label = new BaseLabel();
 
-        SelectionChanged?.Invoke(this, item);
+            //    label.SetBinding(
+            //        Label.TextProperty,
+            //        ".",
+            //        converter: new DelegateConverter<TItem>(DisplayText));
+
+            //    return label;
+            //})
+        };
+        itemsView.SelectionChanged += OnSelectionChanged;
+
+        _overlayService.AddOverlay(
+            itemsView,
+            OverlayPlacement.BelowAnchor,
+            this);
+    }
+
+    private void HideItems()
+    {
+        if (itemsView == null)
+            return;
+
+        _overlayService.RemoveOverlay(itemsView);
+
+        itemsView.SelectionChanged -= OnSelectionChanged;
+        itemsView = null;
+    }
+
+
+
+    public readonly Func<TItem, string> DisplayText;
+    //public Func<TItem, View> ItemTemplate
+
+    public CustomDropdown(
+        Func<TItem, string> displayText,
+        IOverlayService overlayService,
+        ComponentStore componentStore)
+    {
+        DisplayText = displayText;
+        _overlayService = overlayService;
+        _selectedLabelBorder = componentStore.Base
+            .Label()
+            .WithBorder(componentStore);
+
+
+        _selectedLabelBorder.ViewOnTapped(
+            (_) => IsOpened = !IsOpened);
+        
+        BuildLayout();
+    }
+
+    private void BuildLayout()
+    {
+        this.AddChild(_selectedLabelBorder);
+    }
+
+    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is TItem item)
+        {
+            SelectedItem = item;
+            IsOpened = false;
+        }
     }
 }

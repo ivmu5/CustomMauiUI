@@ -60,16 +60,12 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
                     offsetX: 0f,
                     offsetY: 0f);
 
-        _bottomBarBorder.Margin = 10;
-
         _contentScrollView.Content = _contentHost;
-        _contentScrollView.Padding = 10;
-
+        
         _rootGrid.AddChild(_contentScrollView);
         _rootGrid.AddChild(_bottomBarBorder);
 
         AddChildren(_rootGrid);
-        SnackbarService.SetBaseAnchor(_bottomBarBorder);
 
         SetOrientation(_uiServices.WindowService.Orientation);
         _uiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
@@ -120,9 +116,14 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _bottomBarBorder
             .GridPosition(1, 0);
 
+        _contentScrollView.Padding = 10;
+        _bottomBarBorder.Margin = 10;
+
         _bottomBarBorder.View.ToggleLayout.FlexRow();
 
         _uiServices.StatusBarService.IsVisible = true;
+
+        SnackbarService.SetBaseAnchor(_bottomBarBorder);
     }
 
     private void ConfigureLandscape()
@@ -142,9 +143,14 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
             .GridPosition(0, 1)
             .GridRowSpan(0);
 
+        _contentScrollView.Padding = new Thickness(5, 10, 10, 10);
+        _bottomBarBorder.Margin = new Thickness(10, 10, 5, 10); ;
+
         _bottomBarBorder.View.ToggleLayout.FlexColumn();
 
         _uiServices.StatusBarService.IsVisible = false;
+
+        SnackbarService.SetBaseAnchor();
     }
 
     public void AddPage(
