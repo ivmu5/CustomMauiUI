@@ -70,6 +70,15 @@ namespace MauiUiComponents.Resources.Localization {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на App language.
+        /// </summary>
+        public static string LanguageSetting {
+            get {
+                return ResourceManager.GetString("LanguageSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Save.
         /// </summary>
         public static string Save {

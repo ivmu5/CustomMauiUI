@@ -67,7 +67,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
         AddChildren(_rootGrid);
 
-        SetOrientation(_uiServices.WindowService.Orientation);
+        ApplyOrientation(_uiServices.WindowService.Orientation);
         _uiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
     }
 
@@ -76,8 +76,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         if (e.PropertyName != nameof(WindowService.Orientation))
             return;
 
-        SetOrientation(
-            _uiServices.WindowService.Orientation);
+        SetOrientation(_uiServices.WindowService.Orientation);
     }
 
     public void SetOrientation(WindowOrientation orientation)
@@ -85,6 +84,11 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         if (CurrentOrientation == orientation)
             return;
 
+        ApplyOrientation(orientation);
+    }
+
+    private void ApplyOrientation(WindowOrientation orientation)
+    {
         CurrentOrientation = orientation;
 
         switch (CurrentOrientation)
@@ -116,7 +120,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _bottomBarBorder
             .GridPosition(1, 0);
 
-        _contentScrollView.Padding = 10;
+        _contentHost.Padding = 10;
         _bottomBarBorder.Margin = 10;
 
         _bottomBarBorder.View.ToggleLayout.FlexRow();

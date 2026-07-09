@@ -70,6 +70,42 @@ namespace MauiUiSettings.Resources.Localization.MaterialSymbols {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string ArrowDown {
+            get {
+                return ResourceManager.GetString("ArrowDown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string ArrowLeft {
+            get {
+                return ResourceManager.GetString("ArrowLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string ArrowRight {
+            get {
+                return ResourceManager.GetString("ArrowRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string ArrowUp {
+            get {
+                return ResourceManager.GetString("ArrowUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на .
         /// </summary>
         public static string Home {

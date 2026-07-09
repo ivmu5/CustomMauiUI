@@ -120,6 +120,9 @@
   <data name="CornerRadiusSetting" xml:space="preserve">
     <value>Corner radius</value>
   </data>
+  <data name="LanguageSetting" xml:space="preserve">
+    <value>App language</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Save</value>
   </data>

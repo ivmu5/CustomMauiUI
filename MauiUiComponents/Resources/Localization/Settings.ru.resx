@@ -120,6 +120,9 @@
   <data name="CornerRadiusSetting" xml:space="preserve">
     <value>Скругление углов</value>
   </data>
+  <data name="LanguageSetting" xml:space="preserve">
+    <value>Язык приложения</value>
+  </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранить</value>
   </data>

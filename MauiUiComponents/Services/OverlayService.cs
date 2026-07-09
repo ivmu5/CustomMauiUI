@@ -22,14 +22,16 @@ public class OverlayService : IOverlayService
     public void AddOverlay(
         View view,
         OverlayPlacement placement,
-        View? anchor = null)
+        View? anchor = null,
+        Action<View>? onOverlayTaped = null)
     {
         if (placement != OverlayPlacement.Center && anchor == null)
             throw new ArgumentNullException(nameof(anchor));
 
         var overlayLayout = new AbsoluteLayout();
         overlayLayout.ViewOnTapped(
-            (_) => RemoveOverlay(view));
+            (_) => RemoveOverlay(view),
+            onOverlayTaped);
 
         view.ViewAddShadow();
 

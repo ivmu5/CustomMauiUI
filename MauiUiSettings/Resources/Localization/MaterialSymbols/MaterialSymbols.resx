@@ -120,6 +120,18 @@
   <data name="ADB" xml:space="preserve">
     <value></value>
   </data>
+  <data name="ArrowDown" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="ArrowLeft" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="ArrowRight" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="ArrowUp" xml:space="preserve">
+    <value></value>
+  </data>
   <data name="Home" xml:space="preserve">
     <value></value>
   </data>

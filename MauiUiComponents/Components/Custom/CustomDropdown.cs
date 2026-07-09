@@ -1,42 +1,56 @@
-﻿namespace MauiUiComponents;
+﻿using MauiUiSettings;
+using MauiUiSettings.Resources.Localization.MaterialSymbols;
 
-public class CustomDropdown<TItem> : BaseGrid
+namespace MauiUiComponents;
+
+public class CustomDropdown<TItem> : ContentView, IDisposable
 {
+    private readonly ComponentStore _componentStore;
     private readonly IOverlayService _overlayService;
 
-    private readonly BaseBorder<BaseLabel> _selectedLabelBorder;
+    private readonly BaseBorder<BaseGrid> _rootGridBorder;
+    private readonly BaseBorder<BaseButton> _dropdownOpenButtonBorder;
+    private readonly BaseBorder<ContentView> _selectedItemContentBorder;
 
-    private CollectionView? itemsView;
+    private BaseBorder<CollectionView>? _itemsViewBorder;
+
+    public readonly BaseLabel TextLabel;
+
+    public Func<TItem, View> ItemTemplate { get; }
+
+    #region Bindable Properties
 
     public IReadOnlyList<TItem> ItemsSource
     {
-        get => (IReadOnlyList<TItem>?)GetValue(ItemsSourceProperty);
+        get => (IReadOnlyList<TItem>)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
-    } = Array.Empty<TItem>();
+    }
+
     public static readonly BindableProperty ItemsSourceProperty =
         BindableProperty.Create(
             nameof(ItemsSource),
             typeof(IReadOnlyList<TItem>),
             typeof(CustomDropdown<TItem>),
-            propertyChanged: OnItemsChanged);
+            Array.Empty<TItem>(),
+            propertyChanged: OnItemsSourceChanged);
 
-    private static void OnItemsChanged(
+    private static void OnItemsSourceChanged(
         BindableObject bindable,
         object oldValue,
         object newValue)
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        if (dropdown.itemsView != null)
-            dropdown.itemsView.ItemsSource = (IReadOnlyList<TItem>?)newValue;
+        if (dropdown._itemsViewBorder != null)
+            dropdown._itemsViewBorder.View.ItemsSource = (IReadOnlyList<TItem>)newValue;
     }
-
 
     public TItem? SelectedItem
     {
         get => (TItem?)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
+
     public static readonly BindableProperty SelectedItemProperty =
         BindableProperty.Create(
             nameof(SelectedItem),
@@ -44,27 +58,27 @@ public class CustomDropdown<TItem> : BaseGrid
             typeof(CustomDropdown<TItem>),
             default(TItem),
             BindingMode.TwoWay,
-            propertyChanged: OnSelectedChanged);
+            propertyChanged: OnSelectedItemChanged);
 
-    private static void OnSelectedChanged(
+    private static void OnSelectedItemChanged(
         BindableObject bindable,
         object oldValue,
         object newValue)
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        dropdown._selectedLabelBorder.View.Text =
+        dropdown._selectedItemContentBorder.View.Content =
             newValue is TItem item
-                ? dropdown.DisplayText(item)
-                : string.Empty;
+                ? dropdown.ItemTemplate(item)
+                : null;
     }
-
 
     public bool IsOpened
     {
         get => (bool)GetValue(IsOpenedProperty);
         set => SetValue(IsOpenedProperty, value);
     }
+
     public static readonly BindableProperty IsOpenedProperty =
         BindableProperty.Create(
             nameof(IsOpened),
@@ -72,9 +86,9 @@ public class CustomDropdown<TItem> : BaseGrid
             typeof(CustomDropdown<TItem>),
             false,
             BindingMode.TwoWay,
-            propertyChanged: OnOpenedChanged);
+            propertyChanged: OnIsOpenedChanged);
 
-    private static void OnOpenedChanged(
+    private static void OnIsOpenedChanged(
         BindableObject bindable,
         object oldValue,
         object newValue)
@@ -82,85 +96,169 @@ public class CustomDropdown<TItem> : BaseGrid
         var dropdown = (CustomDropdown<TItem>)bindable;
 
         if ((bool)newValue)
+        {
             dropdown.ShowItems();
+
+            dropdown._dropdownOpenButtonBorder.View.TextBind(
+                dropdown._componentStore.ResourcesStore.MaterialSymbolsManager,
+                nameof(MaterialSymbols.ArrowUp));
+        }
         else
+        {
             dropdown.HideItems();
+
+            dropdown._dropdownOpenButtonBorder.View.TextBind(
+                dropdown._componentStore.ResourcesStore.MaterialSymbolsManager,
+                nameof(MaterialSymbols.ArrowDown));
+        }
     }
+
+    #endregion
+
+    public CustomDropdown(
+        Func<TItem, View> itemTemplate,
+        IOverlayService overlayService,
+        ComponentStore componentStore)
+    {
+        ItemTemplate = itemTemplate;
+        _overlayService = overlayService;
+        _componentStore = componentStore;
+
+        _dropdownOpenButtonBorder = componentStore.Base
+            .Button(fontVariant: FontVariant.Icon)
+            .WithBorder(componentStore);
+        TextLabel = _componentStore.Base.Label();
+
+        _selectedItemContentBorder = new ContentView().WithBorder(componentStore);
+
+        _rootGridBorder = new BaseGrid()
+            .WithBorder(componentStore);
+
+        BuildLayout();
+        SubscribeEvents();
+    }
+
+    #region Initialization
+
+    private void BuildLayout()
+    {
+        TextLabel.ViewCenter();
+
+        _rootGridBorder.View
+            .AddStarColumn()
+            .AddAutoColumn()
+            .AddAutoRow()
+            .AddStarRow();
+
+        _rootGridBorder.View
+            .AddChild(TextLabel, 0, 0, columnSpan: 2)
+            .AddChild(_selectedItemContentBorder, 1, 0)
+            .AddChild(_dropdownOpenButtonBorder, 1, 1);
+
+        _dropdownOpenButtonBorder.View.TextBind(
+            _componentStore.ResourcesStore.MaterialSymbolsManager,
+            nameof(MaterialSymbols.ArrowDown));
+
+        Content = _rootGridBorder;
+    }
+
+    private void SubscribeEvents()
+    {
+        _dropdownOpenButtonBorder.View.Clicked += OnToggleClicked;
+
+        _selectedItemContentBorder.ViewOnTapped(_ => IsOpened = !IsOpened);
+    }
+
+    #endregion
+
+    #region Dropdown
 
     private void ShowItems()
     {
-        if (itemsView != null)
+        if (_itemsViewBorder != null)
             return;
 
-        itemsView = new CollectionView
+        var collectionView = new CollectionView
         {
             ItemsSource = ItemsSource,
+            SelectedItem = SelectedItem,
             SelectionMode = SelectionMode.Single,
-            //ItemTemplate = new DataTemplate(() =>
-            //{
-            //    var label = new BaseLabel();
-
-            //    label.SetBinding(
-            //        Label.TextProperty,
-            //        ".",
-            //        converter: new DelegateConverter<TItem>(DisplayText));
-
-            //    return label;
-            //})
+            ItemTemplate = CreateItemTemplate(),
+            MinimumWidthRequest = _selectedItemContentBorder.Width
         };
-        itemsView.SelectionChanged += OnSelectionChanged;
+
+        collectionView.SelectionChanged += OnSelectionChanged;
+
+        _itemsViewBorder = collectionView
+            .WithBorder(_componentStore, backgroundColor: ColorVariant.Blur);
 
         _overlayService.AddOverlay(
-            itemsView,
+            _itemsViewBorder,
             OverlayPlacement.BelowAnchor,
-            this);
+            this,
+            v => IsOpened = false);
     }
 
     private void HideItems()
     {
-        if (itemsView == null)
+        if (_itemsViewBorder == null)
             return;
 
-        _overlayService.RemoveOverlay(itemsView);
+        _itemsViewBorder.View.SelectionChanged -= OnSelectionChanged;
 
-        itemsView.SelectionChanged -= OnSelectionChanged;
-        itemsView = null;
+        _overlayService.RemoveOverlay(_itemsViewBorder);
+
+        _itemsViewBorder = null;
     }
 
-
-
-    public readonly Func<TItem, string> DisplayText;
-    //public Func<TItem, View> ItemTemplate
-
-    public CustomDropdown(
-        Func<TItem, string> displayText,
-        IOverlayService overlayService,
-        ComponentStore componentStore)
+    private DataTemplate CreateItemTemplate()
     {
-        DisplayText = displayText;
-        _overlayService = overlayService;
-        _selectedLabelBorder = componentStore.Base
-            .Label()
-            .WithBorder(componentStore);
-
-
-        _selectedLabelBorder.ViewOnTapped(
-            (_) => IsOpened = !IsOpened);
-        
-        BuildLayout();
-    }
-
-    private void BuildLayout()
-    {
-        this.AddChild(_selectedLabelBorder);
-    }
-
-    private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (e.CurrentSelection.FirstOrDefault() is TItem item)
+        return new DataTemplate(() =>
         {
-            SelectedItem = item;
-            IsOpened = false;
-        }
+            var host = new ContentView();
+
+            host.BindingContextChanged += (_, _) =>
+            {
+                if (host.BindingContext is TItem item)
+                {
+                    var view = ItemTemplate(item);
+                    view.MinimumWidthRequest = _selectedItemContentBorder.Width;
+                    host.Content = view;
+                }
+            };
+
+            return host;
+        });
+    }
+
+    #endregion
+
+    #region Events
+
+    private void OnToggleClicked(
+        object? sender,
+        EventArgs e)
+    {
+        IsOpened = !IsOpened;
+    }
+
+    private void OnSelectionChanged(
+        object? sender,
+        SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is not TItem item)
+            return;
+
+        SelectedItem = item;
+        IsOpened = false;
+    }
+
+    #endregion
+
+    public void Dispose()
+    {
+        _dropdownOpenButtonBorder.View.Clicked -= OnToggleClicked;
+
+        HideItems();
     }
 }
