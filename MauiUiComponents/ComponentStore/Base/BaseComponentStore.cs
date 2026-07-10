@@ -18,9 +18,11 @@ public class BaseComponentStore
         FontVariant fontVariant)
         where T : View, ITextComponent
     {
-        return view
-            .TextStyleBind(_uiServices, fontVariant)
-            .ColorBackgroundBind(_uiServices, backgroundColor);
+        view
+            .ColorBackgroundBind(_uiServices, backgroundColor)
+            .TextStyleBind(_uiServices, fontVariant);
+
+        return view;
     }
 
     public BaseEntry Entry(
@@ -49,7 +51,7 @@ public class BaseComponentStore
         ColorVariant backgroundColor = ColorVariant.Secondary,
         FontVariant fontVariant = FontVariant.Text)
         => BaseBind(new BaseEditor(), backgroundColor, fontVariant);
-
+    
 
 
     public BaseBorder<T> Border<T>(

@@ -1,27 +1,10 @@
 ﻿using MauiUiSettings;
-using System.Diagnostics;
 
 namespace MauiUiComponents;
 
 public static class TextComponentExtensions
 {
-    public static T TextStyleTextBind<T>(
-        this T view,
-        UiServiceStore uiServices)
-        where T : BindableObject, ITextComponent
-    {
-        return view
-            .TextStyleBind(uiServices, uiServices.FontService);
-    }
-
-    public static T TextStyleIconBind<T>(
-        this T view,
-        UiServiceStore uiServices)
-        where T : BindableObject, ITextComponent
-    {
-        return view
-            .TextStyleBind(uiServices, uiServices.IconService);
-    }
+    
 
     public static T TextStyleBind<T>(
         this T view,
@@ -31,13 +14,13 @@ public static class TextComponentExtensions
     {
         return fontVariant switch
         {
-            FontVariant.Text => TextStyleTextBind(view, uiServices),
-            FontVariant.Icon => TextStyleIconBind(view, uiServices),
-            _ => throw new NotImplementedException()
+            FontVariant.Text => view.TextStyleBind(uiServices, uiServices.FontService),
+            FontVariant.Icon => view.TextStyleBind(uiServices, uiServices.IconService),
+            _ => throw new ArgumentOutOfRangeException(nameof(fontVariant), fontVariant, null)
         };
     }
 
-    public static T TextStyleBind<T, TFontService>(
+    private static T TextStyleBind<T, TFontService>(
         this T view,
         UiServiceStore uiServices,
         BaseFontService<TFontService> fontService)
@@ -82,6 +65,16 @@ public static class TextComponentExtensions
             v => v.FontFamily,
             fontService,
             s => s.FontFamily);
+    }
+
+    public static T TextIconBind<T>(
+        this T view,
+        ComponentStore componentStore,
+        string iconKey)
+        where T : BindableObject, ITextComponent
+    {
+        view.TextBind(componentStore.ResourcesStore.MaterialSymbolsManager, iconKey);
+        return view;
     }
 
     public static T TextBind<T>(

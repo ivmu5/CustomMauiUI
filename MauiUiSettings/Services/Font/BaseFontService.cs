@@ -2,7 +2,7 @@
 
 namespace MauiUiSettings;
 
-public class BaseFontService<TService> : UiServiceBase<TService>
+public class BaseFontService<TService> : UiServiceBase<TService>, IFontService
 {
     public double FontSize
     {
@@ -20,8 +20,6 @@ public class BaseFontService<TService> : UiServiceBase<TService>
 
     public Microsoft.Maui.Font CurrentFont => Microsoft.Maui.Font.OfSize(FontFamily, FontSize);
     public Microsoft.Maui.Font CurrentFontBold => Microsoft.Maui.Font.OfSize(FontFamily, FontSize, FontWeight.Bold);
-
-
 
     public BaseFontService(IInstanceRepository<UISettings> settings)
         : base(settings) { }

@@ -5,6 +5,14 @@ namespace MauiUiComponents;
 
 public class CustomDropdown<TItem> : ContentView, IDisposable
 {
+    //private readonly static List<ToggleAction<View>> _defaultToggleStyle = new List<ToggleAction<View>>()
+    //{
+    //    new ToggleViewStyle<View>(
+    //        x => x.Background,
+    //        ColorVariant.Primary,
+    //        ColorVariant.None)
+    //};
+
     private readonly ComponentStore _componentStore;
     private readonly IOverlayService _overlayService;
 
@@ -13,6 +21,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     private readonly BaseBorder<ContentView> _selectedItemContentBorder;
 
     private BaseBorder<CollectionView>? _itemsViewBorder;
+    private BaseBorder<ToggleGroup<FlexLayout>>? _itemsToggleBorder;
 
     public readonly BaseLabel TextLabel;
 
@@ -99,16 +108,16 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         {
             dropdown.ShowItems();
 
-            dropdown._dropdownOpenButtonBorder.View.TextBind(
-                dropdown._componentStore.ResourcesStore.MaterialSymbolsManager,
+            dropdown._dropdownOpenButtonBorder.View.TextIconBind(
+                dropdown._componentStore,
                 nameof(MaterialSymbols.ArrowUp));
         }
         else
         {
             dropdown.HideItems();
 
-            dropdown._dropdownOpenButtonBorder.View.TextBind(
-                dropdown._componentStore.ResourcesStore.MaterialSymbolsManager,
+            dropdown._dropdownOpenButtonBorder.View.TextIconBind(
+                dropdown._componentStore,
                 nameof(MaterialSymbols.ArrowDown));
         }
     }
@@ -126,6 +135,9 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
         _dropdownOpenButtonBorder = componentStore.Base
             .Button(fontVariant: FontVariant.Icon)
+            .TextIconBind(
+                _componentStore,
+                nameof(MaterialSymbols.ArrowDown))
             .WithBorder(componentStore);
         TextLabel = _componentStore.Base.Label();
 
@@ -175,7 +187,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
     private void ShowItems()
     {
-        if (_itemsViewBorder != null)
+        if (_itemsToggleBorder != null)
             return;
 
         var collectionView = new CollectionView
@@ -201,14 +213,14 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
     private void HideItems()
     {
-        if (_itemsViewBorder == null)
+        if (_itemsToggleBorder == null)
             return;
 
         _itemsViewBorder.View.SelectionChanged -= OnSelectionChanged;
 
-        _overlayService.RemoveOverlay(_itemsViewBorder);
+        _overlayService.RemoveOverlay(_itemsToggleBorder);
 
-        _itemsViewBorder = null;
+        _itemsToggleBorder = null;
     }
 
     private DataTemplate CreateItemTemplate()

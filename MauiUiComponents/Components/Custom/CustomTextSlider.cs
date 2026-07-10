@@ -1,4 +1,5 @@
-﻿using MauiUiSettings.Resources.Localization.MaterialSymbols;
+﻿using MauiUiSettings;
+using MauiUiSettings.Resources.Localization.MaterialSymbols;
 using System.Numerics;
 
 namespace MauiUiComponents;
@@ -131,9 +132,9 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
         DefaultValue = resetValue;
 
         ResetButton = _componentStore.Base
-            .Button(fontVariant: MauiUiSettings.FontVariant.Icon)
-            .TextBind(
-                _componentStore.ResourcesStore.MaterialSymbolsManager,
+            .Button(fontVariant: FontVariant.Icon)
+            .TextIconBind(
+                _componentStore,
                 nameof(MaterialSymbols.Refresh));
         ResetButton.Clicked +=
             (s, e) => BindableValue = DefaultValue;

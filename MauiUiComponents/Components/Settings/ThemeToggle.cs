@@ -1,6 +1,5 @@
 using MauiUiComponents.Resources.Localization;
 using MauiUiSettings;
-using SQLiteStorage;
 
 namespace MauiUiComponents;
 
@@ -10,11 +9,11 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
     private readonly UiServiceStore _uiServices;
     private readonly ComponentStore _componentStore;
 
-    private readonly ToggleGridView<TView> _viewSystemTheme;
-    private readonly ToggleGridView<TView> _viewDarkTheme;
-    private readonly ToggleGridView<TView> _viewLightTheme;
+    private readonly ToggleGrid _viewSystemTheme;
+    private readonly ToggleGrid _viewDarkTheme;
+    private readonly ToggleGrid _viewLightTheme;
 
-    private readonly Dictionary<ToggleGridView<TView>, ThemeType> _themeMap = new();
+    private readonly Dictionary<ToggleGrid, ThemeType> _themeMap = new();
 
 
 
@@ -31,19 +30,18 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
             _componentStore.ResourcesStore.SettingsLocalization,
             nameof(Settings.ThemeSetting));
 
-        _viewSystemTheme = CreateThemeView(nameof(Settings.ThemeSystem), ThemeType.System);
-        _viewDarkTheme = CreateThemeView(nameof(Settings.ThemeDark), ThemeType.Dark);
-        _viewLightTheme = CreateThemeView(nameof(Settings.ThemeLight), ThemeType.Light);
+        _viewSystemTheme = CreateThemeView(ThemeType.System, nameof(Settings.ThemeSystem));
+        _viewDarkTheme = CreateThemeView(ThemeType.Dark, nameof(Settings.ThemeDark));
+        _viewLightTheme = CreateThemeView(ThemeType.Light, nameof(Settings.ThemeLight));
 
         SelectItem(GetCurrentThemeView());
-        SelectionChanged += ToggleSelectionChanged;
 
         _uiServices.ThemeService.PropertyChanged += OnThemeChanged;
 
         ToggleLayout.FlexEqualGrow();
     }
 
-    private ToggleGridView<TView> GetCurrentThemeView()
+    private ToggleGrid GetCurrentThemeView()
     {
         return _uiServices.ThemeService.CurrentTheme switch
         {
@@ -63,27 +61,23 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         SelectItem(currentView);
     }
 
-    private ToggleGridView<TView> CreateThemeView(
-        string key,
-        ThemeType theme)
+    private ToggleGrid CreateThemeView(
+        ThemeType theme,
+        string localizationKey)
     {
         var toggleGrid = _componentStore.Custom.ToggleGroup
-            .BaseToggleGridTextView<TView>(
-                _componentStore.ResourcesStore.SettingsLocalization, 
-                key);
+            .BaseTextToggleGrid(
+                _componentStore.ResourcesStore.SettingsLocalization,
+                localizationKey,
+                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(),
+                new(
+                    v => _uiServices.ThemeService.SetTheme(theme),
+                    v => { }));
 
         _themeMap[toggleGrid] = theme;
         AddItem(toggleGrid);
 
         return toggleGrid;
-    }
-
-    private void ToggleSelectionChanged(object? sender, ValueChangedEventArgs<ToggleGrid> e)
-    {
-        if (_themeMap.TryGetValue((ToggleGridView<TView>)e.NewValue!, out var theme))
-        {
-            _uiServices.ThemeService.SetTheme(theme);
-        }
     }
 
     protected override void OnParentSet()
@@ -93,7 +87,6 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         if (Parent == null)
         {
             _uiServices.ThemeService.PropertyChanged -= OnThemeChanged;
-            SelectionChanged -= ToggleSelectionChanged;
         }
     }
 }

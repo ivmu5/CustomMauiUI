@@ -6,17 +6,7 @@ namespace MauiUiComponents;
 public class CustomShell<TView> : BasePage<Grid>, IDisposable
     where TView : View, ITextComponent, new()
 {
-    public readonly List<ToggleViewStyle<TView>> BottomBarToggleStyles = new()
-    {
-        new ToggleViewStyle<TView>(
-            x => x.Background,
-            ColorVariant.Blur,
-            ColorVariant.None),
-        new ToggleViewStyle<TView>(
-            x => x.TextColor,
-            ColorVariant.Primary,
-            ColorVariant.Secondary)
-    };
+    public ToggleAction<TView>[] BottomBarToggleColorActions = Array.Empty<ToggleAction<TView>>();
 
     private readonly Grid _rootGrid;
     private readonly ScrollView _contentScrollView;
@@ -24,7 +14,6 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     private readonly BaseBorder<ToggleGroup<FlexLayout>> _bottomBarBorder;
 
     private readonly Dictionary<string, Func<ContentPage>> _pages = new();
-    private readonly Dictionary<string, ToggleGridView<TView>> _navigationView = new();
 
     public WindowOrientation CurrentOrientation { get; private set; }
 
@@ -48,7 +37,22 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
             .WithBorder(_componentStore)
             .ColorBackgroundBind(uiServices, ColorVariant.Blur);
 
+        AddBottomBarToggleColorActions();
         BuildLayout();
+    }
+
+    private void AddBottomBarToggleColorActions()
+    {
+        BottomBarToggleColorActions =
+        [
+            _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(
+                ColorVariant.Blur,
+                ColorVariant.None),
+            _componentStore.Custom.ToggleGroup.ToggleColorAction<TView>(
+                x => x.TextColor,
+                ColorVariant.Primary,
+                ColorVariant.Secondary)
+        ];
     }
 
     private void BuildLayout()
@@ -61,7 +65,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
                     offsetY: 0f);
 
         _contentScrollView.Content = _contentHost;
-        
+
         _rootGrid.AddChild(_contentScrollView);
         _rootGrid.AddChild(_bottomBarBorder);
 
@@ -157,9 +161,25 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         SnackbarService.SetBaseAnchor();
     }
 
+    public void AddIconPage(
+        Func<ContentPage> pageFactory,
+        string iconName,
+        string route)
+    {
+        var toggleGrid = _componentStore.Custom.ToggleGroup
+            .BaseIconToggleGrid(
+                iconName,
+                BottomBarToggleColorActions);
+
+        AddPage(
+            pageFactory,
+            toggleGrid,
+            route);
+    }
+
     public void AddPage(
         Func<ContentPage> pageFactory,
-        ToggleGridView<TView> viewGrid,
+        ToggleGrid toggleGrid,
         string route)
     {
         if (_pages.ContainsKey(route))
@@ -167,12 +187,11 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
                 $"Page with route '{route}' already exists.");
 
         _pages[route] = pageFactory;
-        _navigationView[route] = viewGrid;
-        _bottomBarBorder.View.AddItem(viewGrid, () => Navigate(route));
+        _bottomBarBorder.View.AddItem(toggleGrid, () => Navigate(route));
 
         if (_contentHost.Content is null)
         {
-            _bottomBarBorder.View.SelectItem(viewGrid);
+            _bottomBarBorder.View.SelectItem(toggleGrid);
             Navigate(route);
         }
     }

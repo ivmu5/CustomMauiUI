@@ -16,85 +16,104 @@ public class ToggleGroupStore
         _componentStore = componentStore;
     }
 
-    public ToggleViewStyle<TView> BaseStyle<TView>(Expression<Func<TView, object>> propertyExpression)
+    public ToggleAction<TView> ToggleColorAction<TView>(
+        Expression<Func<TView, object?>> propertyExpression,
+        ColorVariant selectedColor = ColorVariant.Primary,
+        ColorVariant unselectedColor = ColorVariant.Secondary)
         where TView : View
     {
-        return new ToggleViewStyle<TView>(
-            propertyExpression!,
-            ColorVariant.Primary,
-            ColorVariant.Secondary);
+        return new(
+            view => view.ColorBind(_uiServices, propertyExpression, selectedColor),
+            view => view.ColorBind(_uiServices, propertyExpression, unselectedColor));
     }
 
-
-
-    public ToggleView<TView> ToggleView<TView>(
-        TView view,
-        List<ToggleViewStyle<TView>>? styles = null)
+    public ToggleAction<TView> ToggleBackgroundColorAction<TView>(
+        ColorVariant selectedColor = ColorVariant.Primary,
+        ColorVariant unselectedColor = ColorVariant.Secondary)
         where TView : View
     {
-        var toggleView = new ToggleView<TView>(view, _uiServices, styles);
-
-        return toggleView;
+        return ToggleColorAction<TView>(
+            x => x.Background,
+            selectedColor,
+            unselectedColor);
     }
 
-    public ToggleGridView<TView> ToggleGridView<TView>(
-        TView? view = null,
-        List<ToggleViewStyle<TView>>? styles = null)
-        where TView : View, new()
+
+
+    public ToggleGrid ToggleGrid(Action<ToggleGrid> viewTemplate)
     {
-        view ??= new();
-        view.InputTransparent = true;
-        return new ToggleGridView<TView>(ToggleView(view, styles));
+        var toggleGrid = new ToggleGrid();
+        viewTemplate(toggleGrid);
+        return toggleGrid;
     }
 
-    public ToggleGridView<TView> BaseToggleGrid<TView>(
-        TView view)
-         where TView : View, new()
-    {
-        view ??= new TView();
-
-        return ToggleGridView(
-            view,
-            new List<ToggleViewStyle<TView>>()
-            {
-                BaseStyle<TView>(x => x.Background)
-            });
-    }
-
-
-
-    public ToggleGridView<TView> BaseToggleGridTextView<TView>(
-        ILocalizationResourceManager localization,
-        string key,
-        FontVariant fontVariant = FontVariant.Text)
-        where TView : View, ITextComponent, new()
-    {
-        var view = new TView();
-        view.TextStyleBind(_uiServices, fontVariant);
-        view.TextBind(localization, key);
-
-        return BaseToggleGrid(view);
-    }
-
-
-
-
-    public ToggleGroup<TLayout> ToggleGroup<TLayout>(IEnumerable<ToggleGrid>? items = null, ToggleGrid? selectedItem = null)
+    public ToggleGroup<TLayout> ToggleGroup<TLayout>()
         where TLayout : Layout, new()
     {
-        var toggleGroup = new ToggleGroup<TLayout>(_componentStore);
+        return new ToggleGroup<TLayout>(_componentStore);
+    }
 
-        if (items != null)
+    public ToggleGroup<TLayout> BaseToggleGroup<TLayout, TItem>(
+        IEnumerable<TItem> items,
+        Action<TItem, ToggleGrid> viewTemplate,
+        ToggleGrid? selectedItem = null)
+        where TLayout : Layout, new()
+    {
+        var toggleGroup = ToggleGroup<TLayout>();
+
+        foreach (var item in items)
         {
-            foreach (var item in items)
-            {
-                toggleGroup.AddItem(item);
-            }
-
-            if (selectedItem != null)
-                toggleGroup.SelectItem(selectedItem);
+            var toggleGrid = ToggleGrid(
+                grid => viewTemplate(item, grid));
+            toggleGroup.AddItem(toggleGrid);
         }
 
+        if (selectedItem != null)
+            toggleGroup.SelectItem(selectedItem);
+
         return toggleGroup;
+    }
+
+    public ToggleGrid BaseTextToggleGrid<TView>(
+        ILocalizationResourceManager localizationManager,
+        string localizationKey,
+        params ToggleAction<TView>[] actions)
+        where TView : View, ITextComponent, new()
+    {
+        var toggleGrid = _componentStore.Custom.ToggleGroup.ToggleGrid(
+            grid =>
+            {
+                var view = new TView();
+                view
+                    .ViewCenter()
+                    .TextStyleBind(_uiServices, FontVariant.Text)
+                    .TextBind(
+                        localizationManager,
+                        localizationKey);
+                grid.AddToggleChild(view, actions: actions);
+            });
+
+        return toggleGrid;
+    }
+
+    public ToggleGrid BaseIconToggleGrid<TView>(
+        string iconKey,
+        params ToggleAction<TView>[] actions)
+        where TView : View, ITextComponent, new()
+    {
+        var toggleGrid = _componentStore.Custom.ToggleGroup.ToggleGrid(
+            grid =>
+            {
+                var view = new TView();
+                view
+                    .ViewCenter()
+                    .TextStyleBind(_uiServices, FontVariant.Icon)
+                    .TextIconBind(
+                        _componentStore,
+                        iconKey);
+                grid.AddToggleChild(view, actions: actions);
+            });
+
+        return toggleGrid;
     }
 }
