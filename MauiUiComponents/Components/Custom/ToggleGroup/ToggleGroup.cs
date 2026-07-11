@@ -7,11 +7,46 @@ public class ToggleGroup<TLayout> : Grid
 {
     private readonly ComponentStore _componentStore;
 
-    private readonly List<ToggleGrid> _items = new();
+    private readonly List<IToggleItem> _items = new();
     public readonly TLayout ToggleLayout;
     public readonly BaseLabel CaptionLabel;
 
-    public ToggleGrid? SelectedItem { get; private set; }
+    public IToggleItem? SelectedItem
+    {
+        get => (IToggleItem?)GetValue(SelectedItemProperty);
+        set => SetValue(SelectedItemProperty, value);
+    }
+    public static readonly BindableProperty SelectedItemProperty =
+        BindableProperty.Create(
+            nameof(SelectedItem),
+            typeof(IToggleItem),
+            typeof(ToggleGroup<TLayout>),
+            null,
+            propertyChanged: OnSelectedItemChanged);
+
+    private static void OnSelectedItemChanged(
+        BindableObject bindable,
+        object oldValue,
+        object newValue)
+    {
+        if (Equals(oldValue, newValue))
+            return;
+
+        var control = (ToggleGroup<TLayout>)bindable;
+
+        if (newValue is not IToggleItem value)
+            return;
+
+        if (!control._items.Contains(value))
+            return;
+
+        foreach (var item in control._items)
+        {
+            item.IsSelected = item == value;
+        }
+    }
+
+
     public event EventHandler<ValueChangedEventArgs<ToggleGrid>>? SelectionChanged;
 
     public bool UseCaption
@@ -34,7 +69,7 @@ public class ToggleGroup<TLayout> : Grid
         _componentStore = componentStore;
 
         ToggleLayout = new TLayout();
-        CaptionLabel = componentStore.Base.Label();
+        CaptionLabel = _componentStore.Base.Label();
 
         ToggleLayout.HorizontalOptions = LayoutOptions.Center;
         CaptionLabel.ViewCenter().TextCenter();
@@ -46,37 +81,25 @@ public class ToggleGroup<TLayout> : Grid
         this.AddChild(ToggleLayout, 1);
     }
 
-    public void AddItem(ToggleGrid grid, Action? action = null)
+    public void AddItem(object toggleView, Action? action = null)
     {
-        _items.Add(grid);
-        ToggleLayout.Children.Add(grid);
+        AddItem((IToggleItem)toggleView, action);
+    }
 
-        grid.ViewOnTapped((_) =>
+    public void AddItem(IToggleItem toggleItem, Action? action = null)
+    {
+        _items.Add(toggleItem);
+        ToggleLayout.Children.Add(toggleItem.View);
+
+        toggleItem.View.ViewOnTapped((_) =>
         {
-            SelectItem(grid);
+            SelectedItem = toggleItem;
             action?.Invoke();
         });
 
         if (SelectedItem == null)
-            SelectItem(grid);
-    }
+            SelectedItem = toggleItem;
 
-    public void SelectItem(ToggleGrid item)
-    {
-        if (SelectedItem == item)
-            return;
-
-        if (!_items.Contains(item))
-            return;
-
-        var args = new ValueChangedEventArgs<ToggleGrid>(SelectedItem, item);
-        SelectedItem = item;
-
-        foreach (var i in _items)
-        {
-            i.IsSelected = i == item;
-        }
-
-        SelectionChanged?.Invoke(this, args);
+        toggleItem.UpdateToggleTargets(true);
     }
 }

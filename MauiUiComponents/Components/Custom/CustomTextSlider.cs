@@ -117,7 +117,7 @@ public class CustomTextSlider<TValue> : BaseGrid, IBindableValue<TValue>
 
         this.AddColumn(50);
         this.AddStarColumn();
-        this.For(2, (g, i) => g.AddAutoRow());
+        this.For(2, (i) => this.AddAutoRow());
 
         this.AddChild(TextLabel, 0, 0, 0, 3);
         this.AddChild(ValueEntryBorder, 1, 0);

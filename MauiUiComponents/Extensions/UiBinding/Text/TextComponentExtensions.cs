@@ -4,8 +4,6 @@ namespace MauiUiComponents;
 
 public static class TextComponentExtensions
 {
-    
-
     public static T TextStyleBind<T>(
         this T view,
         UiServiceStore uiServices,

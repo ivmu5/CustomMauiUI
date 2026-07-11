@@ -23,8 +23,9 @@ public class ToggleGroupStore
         where TView : View
     {
         return new(
-            (view, grid) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
-            (view, grid) => view.ColorBind(_uiServices, propertyExpression, unselectedColor));
+            (view) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
+            (view) => view.ColorBind(_uiServices, propertyExpression, unselectedColor),
+            true);
     }
 
     public ToggleAction<TView> ToggleBackgroundColorAction<TView>(
@@ -38,24 +39,14 @@ public class ToggleGroupStore
             unselectedColor);
     }
 
-    public ToggleAction<TView> ToggleGridBackgroundColorAction<TView>(
-        ColorVariant selectedColor = ColorVariant.Primary,
-        ColorVariant unselectedColor = ColorVariant.Secondary)
-        where TView : View
+
+
+    public ToggleItem<TView> ToggleView<TView>(Action<ToggleItem<TView>> viewTemplate)
+        where TView : View, new()
     {
-        Expression<Func<ToggleGrid, object?>> propertyExpression = x => x.Background;
-        return new(
-            (view, grid) => grid.ColorBind(_uiServices, propertyExpression, selectedColor),
-            (view, grid) => grid.ColorBind(_uiServices, propertyExpression, unselectedColor)); ;
-    }
-
-
-
-    public ToggleGrid ToggleGrid(Action<ToggleGrid> viewTemplate)
-    {
-        var toggleGrid = new ToggleGrid();
-        viewTemplate(toggleGrid);
-        return toggleGrid;
+        var toggleView = new ToggleItem<TView>();
+        viewTemplate(toggleView);
+        return toggleView;
     }
 
     public ToggleGroup<TLayout> ToggleGroup<TLayout>()
@@ -67,64 +58,70 @@ public class ToggleGroupStore
     public ToggleGroup<TLayout> BaseToggleGroup<TLayout, TItem>(
         IEnumerable<TItem> items,
         Action<TItem, ToggleGrid> viewTemplate,
-        ToggleGrid? selectedItem = null)
+        TItem? selectedItem = default)
         where TLayout : Layout, new()
     {
         var toggleGroup = ToggleGroup<TLayout>();
 
+        ToggleGrid? selectedView = null;
+
         foreach (var item in items)
         {
-            var toggleGrid = ToggleGrid(
-                grid => viewTemplate(item, grid));
+            var toggleGrid = new ToggleGrid();
+            viewTemplate(item, toggleGrid);
+
             toggleGroup.AddItem(toggleGrid);
+
+            if (Equals(item, selectedItem))
+                selectedView = toggleGrid;
         }
 
-        if (selectedItem != null)
-            toggleGroup.SelectItem(selectedItem);
+        if (selectedView != null)
+            toggleGroup.SelectedItem = selectedView;
 
         return toggleGroup;
     }
 
-    public ToggleGrid BaseTextToggleGrid<TView>(
+    public ToggleItem<TView> BaseTextToggleView<TView>(
         ILocalizationResourceManager localizationManager,
         string localizationKey,
         params ToggleAction<TView>[] actions)
         where TView : View, ITextComponent, new()
     {
-        var toggleGrid = _componentStore.Custom.ToggleGroup.ToggleGrid(
-            grid =>
-            {
-                var view = new TView();
-                view
-                    .ViewCenter()
-                    .TextStyleBind(_uiServices, FontVariant.Text)
-                    .TextBind(
-                        localizationManager,
-                        localizationKey);
-                grid.AddToggleChild(view, actions: actions);
-            });
+        var toggleView = new ToggleItem<TView>();
+        toggleView.View
+            .ViewCenter()
+            .TextStyleBind(_uiServices, FontVariant.Text)
+            .TextBind(
+                localizationManager,
+                localizationKey);
 
-        return toggleGrid;
+        var toggleTarget = new ToggleTarget<TView>(
+            toggleView.View,
+            actions);
+        toggleView.AddToggleTarget(toggleTarget);
+
+        return toggleView;
     }
 
-    public ToggleGrid BaseIconToggleGrid<TView>(
+    public ToggleItem<TView> BaseIconToggleView<TView>(
         string iconKey,
         params ToggleAction<TView>[] actions)
         where TView : View, ITextComponent, new()
     {
-        var toggleGrid = _componentStore.Custom.ToggleGroup.ToggleGrid(
-            grid =>
-            {
-                var view = new TView();
-                view
-                    .ViewCenter()
-                    .TextStyleBind(_uiServices, FontVariant.Icon)
-                    .TextIconBind(
-                        _componentStore,
-                        iconKey);
-                grid.AddToggleChild(view, actions: actions);
-            });
+        var toggleIconView = new ToggleItem<TView>();
+        toggleIconView.View
+            .ViewCenter()
+            .TextStyleBind(_uiServices, FontVariant.Icon)
+            .TextIconBind(
+                _componentStore,
+                iconKey);
 
-        return toggleGrid;
+        var toggleTarget = new ToggleTarget<TView>(
+            toggleIconView.View,
+            actions);
+        toggleIconView.AddToggleTarget(toggleTarget);
+
+        return toggleIconView;
     }
 }

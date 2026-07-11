@@ -3,14 +3,18 @@
 public class ToggleAction<TView>
     where TView : View
 {
-    public readonly Action<TView, ToggleGrid> OnSelected;
-    public readonly Action<TView, ToggleGrid> OnUnselected;
+    public bool ApplyOnInitialize { get; }
+
+    public Action<TView> OnSelected { get; }
+    public Action<TView> OnUnselected { get; }
 
     public ToggleAction(
-        Action<TView, ToggleGrid> onSelected,
-        Action<TView, ToggleGrid> onUnselected)
+        Action<TView> onSelected,
+        Action<TView> onUnselected,
+        bool applyOnInitialize = false)
     {
         OnSelected = onSelected;
         OnUnselected = onUnselected;
+        ApplyOnInitialize = applyOnInitialize;
     }
 }

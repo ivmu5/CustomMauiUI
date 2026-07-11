@@ -40,16 +40,13 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     {
         BottomBarToggleColorActions =
         [
-            _componentStore.Custom.ToggleGroup.ToggleGridBackgroundColorAction<TView>(
+            _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(
                 ColorVariant.Primary,
                 ColorVariant.Secondary),
-            _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(
-                ColorVariant.None,
-                ColorVariant.None),
-            _componentStore.Custom.ToggleGroup.ToggleColorAction<TView>(
-                x => x.TextColor,
-                ColorVariant.Text,
-                ColorVariant.Text)
+            //_componentStore.Custom.ToggleGroup.ToggleColorAction<TView>(
+            //    x => x.TextColor,
+            //    ColorVariant.Text,
+            //    ColorVariant.Text)
         ];
     }
 
@@ -164,20 +161,20 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         string iconName,
         string route)
     {
-        var toggleGrid = _componentStore.Custom.ToggleGroup
-            .BaseIconToggleGrid(
+        var toggleItem = _componentStore.Custom.ToggleGroup
+            .BaseIconToggleView(
                 iconName,
                 BottomBarToggleColorActions);
 
         AddPage(
             pageFactory,
-            toggleGrid,
+            toggleItem,
             route);
     }
 
     public void AddPage(
         Func<ContentPage> pageFactory,
-        ToggleGrid toggleGrid,
+        IToggleItem toggleItem,
         string route)
     {
         if (_pages.ContainsKey(route))
@@ -185,11 +182,11 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
                 $"Page with route '{route}' already exists.");
 
         _pages[route] = pageFactory;
-        _bottomBarBorder.View.AddItem(toggleGrid, () => Navigate(route));
+        _bottomBarBorder.View.AddItem(toggleItem, () => Navigate(route));
 
         if (_contentHost.Content is null)
         {
-            _bottomBarBorder.View.SelectItem(toggleGrid);
+            _bottomBarBorder.View.SelectedItem = toggleItem;
             Navigate(route);
         }
     }

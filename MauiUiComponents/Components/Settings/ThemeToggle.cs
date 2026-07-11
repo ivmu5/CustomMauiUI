@@ -9,11 +9,11 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
     private readonly UiServiceStore _uiServices;
     private readonly ComponentStore _componentStore;
 
-    private readonly ToggleGrid _viewSystemTheme;
-    private readonly ToggleGrid _viewDarkTheme;
-    private readonly ToggleGrid _viewLightTheme;
+    private readonly ToggleItem<TView> _viewSystemTheme;
+    private readonly ToggleItem<TView> _viewDarkTheme;
+    private readonly ToggleItem<TView> _viewLightTheme;
 
-    private readonly Dictionary<ToggleGrid, ThemeType> _themeMap = new();
+    private readonly Dictionary<TView, ThemeType> _themeMap = new();
 
 
 
@@ -34,14 +34,14 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         _viewDarkTheme = CreateThemeView(ThemeType.Dark, nameof(Settings.ThemeDark));
         _viewLightTheme = CreateThemeView(ThemeType.Light, nameof(Settings.ThemeLight));
 
-        SelectItem(GetCurrentThemeView());
+        SelectedItem = GetCurrentThemeView();
 
         _uiServices.ThemeService.PropertyChanged += OnThemeChanged;
 
         ToggleLayout.FlexEqualGrow();
     }
 
-    private ToggleGrid GetCurrentThemeView()
+    private ToggleItem<TView> GetCurrentThemeView()
     {
         return _uiServices.ThemeService.CurrentTheme switch
         {
@@ -58,27 +58,28 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         if (currentView == SelectedItem)
             return;
 
-        SelectItem(currentView);
+        SelectedItem = currentView;
     }
 
-    private ToggleGrid CreateThemeView(
+    private ToggleItem<TView> CreateThemeView(
         ThemeType theme,
         string localizationKey)
     {
-        var toggleGrid = _componentStore.Custom.ToggleGroup
-            .BaseTextToggleGrid(
+        var toggleItem = _componentStore.Custom.ToggleGroup
+            .BaseTextToggleView<TView>(
                 _componentStore.ResourcesStore.SettingsLocalization,
                 localizationKey,
-                _componentStore.Custom.ToggleGroup.ToggleGridBackgroundColorAction<TView>(),
-                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(ColorVariant.None, ColorVariant.None),
+                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(ColorVariant.Primary, ColorVariant.Secondary),
                 new(
-                    (_, _) => _uiServices.ThemeService.SetTheme(theme),
-                    (_, _) => { }));
+                    (_) => _uiServices.ThemeService.SetTheme(theme),
+                    (_) => { }));
 
-        _themeMap[toggleGrid] = theme;
-        AddItem(toggleGrid);
+        toggleItem.View.ViewFillHorizontal();
 
-        return toggleGrid;
+        _themeMap[toggleItem.View] = theme;
+        AddItem(toggleItem);
+
+        return toggleItem;
     }
 
     protected override void OnParentSet()

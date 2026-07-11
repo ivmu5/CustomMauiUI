@@ -1,34 +1,35 @@
 ﻿namespace MauiUiComponents;
 
-internal class ToggleTarget<TView> : IToggleTarget
+public class ToggleTarget<TView> : IToggleTarget
     where TView : View
 {
     private readonly ToggleAction<TView>[] _actions;
 
     private readonly TView _view;
-    private readonly ToggleGrid _parent;
 
 
     public ToggleTarget(
         TView view,
-        ToggleGrid parent,
         ToggleAction<TView>[] actions)
     {
         _view = view;
         _actions = actions;
-        _parent = parent;
 
-        _view.InputTransparent = true;
+        //_view.InputTransparent = true;
     }
 
-    public void Update(bool isSelected)
+    public void Update(bool isSelected, bool onlyInitAction)
     {
-        foreach (var action in _actions)
+        var actions = onlyInitAction
+            ? _actions.Where(a => a.ApplyOnInitialize)
+            : _actions;
+
+        foreach (var action in actions)
         {
             if (isSelected)
-                action.OnSelected?.Invoke(_view, _parent);
+                action.OnSelected?.Invoke(_view);
             else
-                action.OnUnselected?.Invoke(_view, _parent);
+                action.OnUnselected?.Invoke(_view);
         }
     }
 }
