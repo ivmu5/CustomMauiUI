@@ -25,7 +25,8 @@ public class ToggleGroupStore
         return new(
             (view) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
             (view) => view.ColorBind(_uiServices, propertyExpression, unselectedColor),
-            true);
+            ToggleActionTrigger.Initialization,
+            ToggleActionTrigger.UIStateChange);
     }
 
     public ToggleAction<TView> ToggleBackgroundColorAction<TView>(

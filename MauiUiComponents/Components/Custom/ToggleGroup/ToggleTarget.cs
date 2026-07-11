@@ -14,14 +14,12 @@ public class ToggleTarget<TView> : IToggleTarget
     {
         _view = view;
         _actions = actions;
-
-        //_view.InputTransparent = true;
     }
 
-    public void Update(bool isSelected, bool onlyInitAction)
+    public void Update(bool isSelected, params ToggleActionTrigger[] triggers)
     {
-        var actions = onlyInitAction
-            ? _actions.Where(a => a.ApplyOnInitialize)
+        var actions = triggers.Length > 0
+            ? _actions.Where(a => a.HasType(triggers))
             : _actions;
 
         foreach (var action in actions)

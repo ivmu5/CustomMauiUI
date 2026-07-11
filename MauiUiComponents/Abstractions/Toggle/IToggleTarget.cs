@@ -2,5 +2,5 @@
 
 public interface IToggleTarget
 {
-    void Update(bool isSelected, bool onlyInitAction);
+    void Update(bool isSelected, params ToggleActionTrigger[] triggers);
 }

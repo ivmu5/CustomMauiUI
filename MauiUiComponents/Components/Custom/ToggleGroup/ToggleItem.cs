@@ -32,7 +32,9 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
         var control = (ToggleItem<TView>)bindable;
         var value = (bool)newValue;
 
-        control.UpdateToggleTargets(false);
+        control.UpdateToggleTargets(
+            ToggleActionTrigger.UIStateChange,
+            ToggleActionTrigger.BusinessAction);
     }
 
     public void AddToggleTarget(IToggleTarget target)
@@ -41,11 +43,11 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
             _toggleTargets.Add(target);
     }
 
-    public void UpdateToggleTargets(bool onlyInitAction)
+    public void UpdateToggleTargets(params ToggleActionTrigger[] triggers)
     {
         foreach (var target in _toggleTargets)
         {
-            target.Update(IsSelected, onlyInitAction);
+            target.Update(IsSelected, triggers);
         }
     }
 }

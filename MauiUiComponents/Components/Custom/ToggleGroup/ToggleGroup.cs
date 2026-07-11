@@ -100,6 +100,6 @@ public class ToggleGroup<TLayout> : Grid
         if (SelectedItem == null)
             SelectedItem = toggleItem;
 
-        toggleItem.UpdateToggleTargets(true);
+        toggleItem.UpdateToggleTargets(ToggleActionTrigger.Initialization);
     }
 }
