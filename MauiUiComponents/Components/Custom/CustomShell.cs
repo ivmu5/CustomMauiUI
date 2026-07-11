@@ -24,18 +24,13 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         ComponentStore componentStore)
         : base(uiServices, componentStore)
     {
-        this.ColorBind(
-            _uiServices,
-            x => x.BackgroundColor,
-            ColorVariant.Background);
-
         _rootGrid = new();
         _contentHost = new();
         _contentScrollView = new();
         _bottomBarBorder = componentStore.Custom.ToggleGroup
             .ToggleGroup<FlexLayout>()
             .WithBorder(_componentStore)
-            .ColorBackgroundBind(uiServices, ColorVariant.Blur);
+            .ColorBackgroundBind(uiServices/*, ColorVariant.Blur*/);
 
         AddBottomBarToggleColorActions();
         BuildLayout();
@@ -45,13 +40,16 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     {
         BottomBarToggleColorActions =
         [
+            _componentStore.Custom.ToggleGroup.ToggleGridBackgroundColorAction<TView>(
+                ColorVariant.Primary,
+                ColorVariant.Secondary),
             _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(
-                ColorVariant.Blur,
+                ColorVariant.None,
                 ColorVariant.None),
             _componentStore.Custom.ToggleGroup.ToggleColorAction<TView>(
                 x => x.TextColor,
-                ColorVariant.Primary,
-                ColorVariant.Secondary)
+                ColorVariant.Text,
+                ColorVariant.Text)
         ];
     }
 

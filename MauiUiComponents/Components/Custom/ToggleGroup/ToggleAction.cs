@@ -3,12 +3,12 @@
 public class ToggleAction<TView>
     where TView : View
 {
-    public readonly Action<TView> OnSelected;
-    public readonly Action<TView> OnUnselected;
+    public readonly Action<TView, ToggleGrid> OnSelected;
+    public readonly Action<TView, ToggleGrid> OnUnselected;
 
     public ToggleAction(
-        Action<TView> onSelected,
-        Action<TView> onUnselected)
+        Action<TView, ToggleGrid> onSelected,
+        Action<TView, ToggleGrid> onUnselected)
     {
         OnSelected = onSelected;
         OnUnselected = onUnselected;

@@ -23,8 +23,8 @@ public class ToggleGroupStore
         where TView : View
     {
         return new(
-            view => view.ColorBind(_uiServices, propertyExpression, selectedColor),
-            view => view.ColorBind(_uiServices, propertyExpression, unselectedColor));
+            (view, grid) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
+            (view, grid) => view.ColorBind(_uiServices, propertyExpression, unselectedColor));
     }
 
     public ToggleAction<TView> ToggleBackgroundColorAction<TView>(
@@ -36,6 +36,17 @@ public class ToggleGroupStore
             x => x.Background,
             selectedColor,
             unselectedColor);
+    }
+
+    public ToggleAction<TView> ToggleGridBackgroundColorAction<TView>(
+        ColorVariant selectedColor = ColorVariant.Primary,
+        ColorVariant unselectedColor = ColorVariant.Secondary)
+        where TView : View
+    {
+        Expression<Func<ToggleGrid, object?>> propertyExpression = x => x.Background;
+        return new(
+            (view, grid) => grid.ColorBind(_uiServices, propertyExpression, selectedColor),
+            (view, grid) => grid.ColorBind(_uiServices, propertyExpression, unselectedColor)); ;
     }
 
 

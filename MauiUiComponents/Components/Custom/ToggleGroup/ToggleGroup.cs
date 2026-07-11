@@ -5,6 +5,8 @@ namespace MauiUiComponents;
 public class ToggleGroup<TLayout> : Grid
     where TLayout : Layout, new()
 {
+    private readonly ComponentStore _componentStore;
+
     private readonly List<ToggleGrid> _items = new();
     public readonly TLayout ToggleLayout;
     public readonly BaseLabel CaptionLabel;
@@ -29,6 +31,8 @@ public class ToggleGroup<TLayout> : Grid
 
     public ToggleGroup(ComponentStore componentStore)
     {
+        _componentStore = componentStore;
+
         ToggleLayout = new TLayout();
         CaptionLabel = componentStore.Base.Label();
 
@@ -67,10 +71,12 @@ public class ToggleGroup<TLayout> : Grid
 
         var args = new ValueChangedEventArgs<ToggleGrid>(SelectedItem, item);
         SelectedItem = item;
+
         foreach (var i in _items)
         {
             i.IsSelected = i == item;
         }
+
         SelectionChanged?.Invoke(this, args);
     }
 }

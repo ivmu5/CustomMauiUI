@@ -69,10 +69,11 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
             .BaseTextToggleGrid(
                 _componentStore.ResourcesStore.SettingsLocalization,
                 localizationKey,
-                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(),
+                _componentStore.Custom.ToggleGroup.ToggleGridBackgroundColorAction<TView>(),
+                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(ColorVariant.None, ColorVariant.None),
                 new(
-                    v => _uiServices.ThemeService.SetTheme(theme),
-                    v => { }));
+                    (_, _) => _uiServices.ThemeService.SetTheme(theme),
+                    (_, _) => { }));
 
         _themeMap[toggleGrid] = theme;
         AddItem(toggleGrid);

@@ -46,10 +46,13 @@ public class ToggleGrid : BaseGrid
     {
         var toggleTarget = new ToggleTarget<TView>(
             child,
+            this,
             actions);
 
         this.AddChild(child, row, column, rowSpan, columnSpan);
         _toggleTargets.Add(toggleTarget);
+
+        child.ViewFillHorizontal();
 
         toggleTarget.Update(IsSelected);
     }
