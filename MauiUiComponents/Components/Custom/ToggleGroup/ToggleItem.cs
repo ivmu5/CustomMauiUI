@@ -3,7 +3,7 @@
 public class ToggleItem<TView> : BindableObject, IToggleItem
     where TView : View, new()
 {
-    public TView View { get; init; } = new TView();
+    public TView View { get; init; }
     View IToggleItem.View => View;
 
     public List<IToggleBehavior> Actions { get; } = new();
@@ -34,6 +34,13 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
         item.UpdateActions(
             ToggleTrigger.UIStateChange,
             ToggleTrigger.BusinessAction);
+    }
+
+
+
+    public ToggleItem(TView? view = null)
+    {
+        View = view ?? new TView();
     }
 
     public void AddAction(params IToggleBehavior[] actions)

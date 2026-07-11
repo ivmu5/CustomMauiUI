@@ -22,14 +22,14 @@ namespace MauiUiSettings.Resources.Localization.Enum {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class EnumResources {
+    public class UiSettingsResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal EnumResources() {
+        internal UiSettingsResources() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace MauiUiSettings.Resources.Localization.Enum {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MauiUiSettings.Resources.Localization.Enum.EnumResources", typeof(EnumResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MauiUiSettings.Resources.Localization.Enum.UiSettingsResources", typeof(UiSettingsResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,15 @@ namespace MauiUiSettings.Resources.Localization.Enum {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Corner radius.
+        /// </summary>
+        public static string CornerRadiusSetting {
+            get {
+                return ResourceManager.GetString("CornerRadiusSetting", resourceCulture);
             }
         }
         
@@ -106,6 +115,24 @@ namespace MauiUiSettings.Resources.Localization.Enum {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Save.
+        /// </summary>
+        public static string SettingsSave {
+            get {
+                return ResourceManager.GetString("SettingsSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Settings saved.
+        /// </summary>
+        public static string SettingsSaved {
+            get {
+                return ResourceManager.GetString("SettingsSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на English.
         /// </summary>
         public static string SupportedLanguageEnglish {
@@ -115,7 +142,7 @@ namespace MauiUiSettings.Resources.Localization.Enum {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на Russian.
+        ///   Ищет локализованную строку, похожую на Русский.
         /// </summary>
         public static string SupportedLanguageRussian {
             get {
@@ -129,6 +156,42 @@ namespace MauiUiSettings.Resources.Localization.Enum {
         public static string SupportedLanguageSetting {
             get {
                 return ResourceManager.GetString("SupportedLanguageSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Dark.
+        /// </summary>
+        public static string ThemeDark {
+            get {
+                return ResourceManager.GetString("ThemeDark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Light.
+        /// </summary>
+        public static string ThemeLight {
+            get {
+                return ResourceManager.GetString("ThemeLight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на App theme.
+        /// </summary>
+        public static string ThemeSetting {
+            get {
+                return ResourceManager.GetString("ThemeSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на System.
+        /// </summary>
+        public static string ThemeSystem {
+            get {
+                return ResourceManager.GetString("ThemeSystem", resourceCulture);
             }
         }
     }

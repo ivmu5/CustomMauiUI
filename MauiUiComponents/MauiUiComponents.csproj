@@ -37,19 +37,4 @@
 	  <ProjectReference Include="..\MauiUiSettings\MauiUiSettings.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Compile Update="Resources\Localization\Settings.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Settings.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <EmbeddedResource Update="Resources\Localization\Settings.resx">
-	    <Generator>PublicResXFileCodeGenerator</Generator>
-	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
-	</ItemGroup>
-
 </Project>

@@ -8,18 +8,27 @@ public class ToggleBehavior<TView> : IToggleBehavior
     public IReadOnlySet<ToggleTrigger> TriggerTypes { get; }
 
     public Action<TView> OnSelected { get; }
-    public Action<TView> OnUnselected { get; }
+    public Action<TView>? OnUnselected { get; }
 
     public ToggleBehavior(
         View view,
         Action<TView> onSelected,
-        Action<TView> onUnselected,
+        Action<TView>? onUnselected,
         params ToggleTrigger[] types)
     {
         _view = view;
         OnSelected = onSelected;
         OnUnselected = onUnselected;
         TriggerTypes = new HashSet<ToggleTrigger>(types);
+    }
+
+    public ToggleBehavior(
+        TView view,
+        Action<TView> onSelected,
+        params ToggleTrigger[] triggers)
+    : this(view, onSelected, null, triggers)
+    {
+
     }
 
     public bool HasTrigger(ToggleTrigger type)

@@ -6,16 +6,15 @@ namespace MauiUiSettings;
 public enum SupportedLanguage
 {
     [Display(
-        Name = nameof(EnumResources.SupportedLanguageEnglish),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.SupportedLanguageEnglish),
+        ResourceType = typeof(UiSettingsResources))]
     [LanguageCode("en")]
     English,
 
 
-
     [Display(
-        Name = nameof(EnumResources.SupportedLanguageRussian),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.SupportedLanguageRussian),
+        ResourceType = typeof(UiSettingsResources))]
     [LanguageCode("ru")]
     Russian
 }

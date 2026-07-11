@@ -6,22 +6,22 @@ namespace MauiUiSettings;
 public enum MaterialSymbolMode
 {
     [Display(
-        Name = nameof(EnumResources.MaterialSymbolModeAuto),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.MaterialSymbolModeAuto),
+        ResourceType = typeof(UiSettingsResources))]
     Auto,
 
     [Display(
-        Name = nameof(EnumResources.MaterialSymbolModeRounded),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.MaterialSymbolModeRounded),
+        ResourceType = typeof(UiSettingsResources))]
     Rounded,
 
     [Display(
-        Name = nameof(EnumResources.MaterialSymbolModeOutlined),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.MaterialSymbolModeOutlined),
+        ResourceType = typeof(UiSettingsResources))]
     Outlined,
 
     [Display(
-        Name = nameof(EnumResources.MaterialSymbolModeSharp),
-        ResourceType = typeof(EnumResources))]
+        Name = nameof(UiSettingsResources.MaterialSymbolModeSharp),
+        ResourceType = typeof(UiSettingsResources))]
     Sharp
 }

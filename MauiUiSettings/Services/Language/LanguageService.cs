@@ -4,7 +4,7 @@ using System.Globalization;
 
 public class LanguageService : UiServiceBase<LanguageService>
 {
-    public const SupportedLanguage DefaultLanguage = SupportedLanguage.Russian;
+    public const SupportedLanguage DefaultLanguage = SupportedLanguage.English;
 
     public SupportedLanguage Language
     {
@@ -21,7 +21,7 @@ public class LanguageService : UiServiceBase<LanguageService>
         SetCulture(_settings.Get().Language);
     }
 
-    public async Task SetLanguageAsync(SupportedLanguage language)
+    public void SetLanguage(SupportedLanguage language)
     {
         SetCulture(language);
         _settings.Get().Language = language;

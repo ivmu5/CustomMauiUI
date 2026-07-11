@@ -120,14 +120,35 @@
   <data name="CornerRadiusSetting" xml:space="preserve">
     <value>Corner radius</value>
   </data>
-  <data name="LanguageSetting" xml:space="preserve">
-    <value>App language</value>
+  <data name="MaterialSymbolModeAuto" xml:space="preserve">
+    <value>Auto</value>
   </data>
-  <data name="Save" xml:space="preserve">
+  <data name="MaterialSymbolModeOutlined" xml:space="preserve">
+    <value>Outlined</value>
+  </data>
+  <data name="MaterialSymbolModeRounded" xml:space="preserve">
+    <value>Rounded</value>
+  </data>
+  <data name="MaterialSymbolModeSetting" xml:space="preserve">
+    <value>Icon type</value>
+  </data>
+  <data name="MaterialSymbolModeSharp" xml:space="preserve">
+    <value>Sharp</value>
+  </data>
+  <data name="SettingsSave" xml:space="preserve">
     <value>Save</value>
   </data>
   <data name="SettingsSaved" xml:space="preserve">
     <value>Settings saved</value>
+  </data>
+  <data name="SupportedLanguageEnglish" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="SupportedLanguageRussian" xml:space="preserve">
+    <value>Русский</value>
+  </data>
+  <data name="SupportedLanguageSetting" xml:space="preserve">
+    <value>App language</value>
   </data>
   <data name="ThemeDark" xml:space="preserve">
     <value>Dark</value>

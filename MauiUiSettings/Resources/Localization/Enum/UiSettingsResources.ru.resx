@@ -120,14 +120,29 @@
   <data name="CornerRadiusSetting" xml:space="preserve">
     <value>Скругление углов</value>
   </data>
-  <data name="LanguageSetting" xml:space="preserve">
-    <value>Язык приложения</value>
+  <data name="MaterialSymbolModeAuto" xml:space="preserve">
+    <value>Автоматически</value>
   </data>
-  <data name="Save" xml:space="preserve">
+  <data name="MaterialSymbolModeOutlined" xml:space="preserve">
+    <value>Очерченный</value>
+  </data>
+  <data name="MaterialSymbolModeRounded" xml:space="preserve">
+    <value>Скругленный</value>
+  </data>
+  <data name="MaterialSymbolModeSetting" xml:space="preserve">
+    <value>Тип иконок</value>
+  </data>
+  <data name="MaterialSymbolModeSharp" xml:space="preserve">
+    <value>Острый</value>
+  </data>
+  <data name="SettingsSave" xml:space="preserve">
     <value>Сохранить</value>
   </data>
   <data name="SettingsSaved" xml:space="preserve">
     <value>Настройки сохранены</value>
+  </data>
+  <data name="SupportedLanguageSetting" xml:space="preserve">
+    <value>Язык приложения</value>
   </data>
   <data name="ThemeDark" xml:space="preserve">
     <value>Тёмная</value>

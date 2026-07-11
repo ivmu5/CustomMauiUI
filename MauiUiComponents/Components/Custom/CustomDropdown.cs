@@ -67,14 +67,10 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        if (newValue is TItem item)
-        {
-            var toggleGrid = dropdown.ItemTemplate(item);
-            dropdown._selectedItemContentBorder.View.Content = toggleGrid.View;
+        dropdown.UpdateSelectedItemContent();
 
-            if (dropdown.IsOpened)
-                dropdown.IsOpened = false;
-        }
+        if (dropdown.IsOpened)
+            dropdown.IsOpened = false;
     }
 
 
@@ -200,7 +196,6 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
                 new ToggleBehavior<BaseGrid>(
                     toggleGrid.View,
                     _ => SelectedItem = item,
-                    _ => { },
                     ToggleTrigger.BusinessAction));
 
             toggleGroup.AddItem(toggleGrid);
@@ -231,6 +226,18 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         _overlayService.RemoveOverlay(_itemsToggleBorder);
 
         _itemsToggleBorder = null;
+    }
+
+    public void UpdateSelectedItemContent()
+    {
+        if (SelectedItem == null)
+        {
+            _selectedItemContentBorder.View.Content = null;
+            return;
+        }
+
+        var toggleGrid = ItemTemplate(SelectedItem);
+        _selectedItemContentBorder.View.Content = toggleGrid.View;
     }
 
     #endregion

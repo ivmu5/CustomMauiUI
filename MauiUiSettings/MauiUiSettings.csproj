@@ -43,10 +43,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Resources\Localization\Enum\EnumResources.Designer.cs">
+	  <Compile Update="Resources\Localization\Enum\UiSettingsResources.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>
-	    <DependentUpon>EnumResources.resx</DependentUpon>
+	    <DependentUpon>UiSettingsResources.resx</DependentUpon>
 	  </Compile>
 	  <Compile Update="Resources\Localization\MaterialSymbols\MaterialSymbols.Designer.cs">
 	    <DesignTime>True</DesignTime>
@@ -56,9 +56,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Update="Resources\Localization\Enum\EnumResources.resx">
+	  <EmbeddedResource Update="Resources\Localization\Enum\UiSettingsResources.resx">
 	    <Generator>PublicResXFileCodeGenerator</Generator>
-	    <LastGenOutput>EnumResources.Designer.cs</LastGenOutput>
+	    <LastGenOutput>UiSettingsResources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
 	  <EmbeddedResource Update="Resources\Localization\MaterialSymbols\MaterialSymbols.resx">
 	    <Generator>PublicResXFileCodeGenerator</Generator>

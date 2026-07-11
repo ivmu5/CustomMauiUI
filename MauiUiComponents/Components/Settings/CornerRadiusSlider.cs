@@ -1,5 +1,5 @@
-﻿using MauiUiComponents.Resources.Localization;
-using MauiUiSettings;
+﻿using MauiUiSettings;
+using MauiUiSettings.Resources.Localization.Enum;
 using System.ComponentModel;
 
 namespace MauiUiComponents;
@@ -27,7 +27,7 @@ public class CornerRadiusSlider : CustomTextSlider<int>
 
         TextLabel.TextBind(
             ComponentStore.ResourcesStore.SettingsLocalization,
-            nameof(Settings.CornerRadiusSetting));
+            nameof(UiSettingsResources.CornerRadiusSetting));
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)

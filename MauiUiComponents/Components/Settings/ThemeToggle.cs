@@ -1,5 +1,5 @@
-using MauiUiComponents.Resources.Localization;
 using MauiUiSettings;
+using MauiUiSettings.Resources.Localization.Enum;
 
 namespace MauiUiComponents;
 
@@ -28,11 +28,11 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         UseCaption = true;
         CaptionLabel.TextBind(
             _componentStore.ResourcesStore.SettingsLocalization,
-            nameof(Settings.ThemeSetting));
+            nameof(UiSettingsResources.ThemeSetting));
 
-        _viewSystemTheme = CreateThemeView(ThemeType.System, nameof(Settings.ThemeSystem));
-        _viewDarkTheme = CreateThemeView(ThemeType.Dark, nameof(Settings.ThemeDark));
-        _viewLightTheme = CreateThemeView(ThemeType.Light, nameof(Settings.ThemeLight));
+        _viewSystemTheme = CreateThemeView(ThemeType.System, nameof(UiSettingsResources.ThemeSystem));
+        _viewDarkTheme = CreateThemeView(ThemeType.Dark, nameof(UiSettingsResources.ThemeDark));
+        _viewLightTheme = CreateThemeView(ThemeType.Light, nameof(UiSettingsResources.ThemeLight));
 
         SelectedItem = GetCurrentThemeView();
 
