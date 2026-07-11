@@ -3,7 +3,10 @@
 public interface IToggleItem
 {
     View View { get; }
+    List<IToggleBehavior> Actions { get; }
     bool IsSelected { get; set; }
 
-    void UpdateToggleTargets(params ToggleActionTrigger[] triggers);
+    void AddAction(params IToggleBehavior[] actions);
+
+    void UpdateActions(params ToggleTrigger[] triggers);
 }

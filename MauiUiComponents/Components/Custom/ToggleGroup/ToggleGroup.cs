@@ -81,12 +81,7 @@ public class ToggleGroup<TLayout> : Grid
         this.AddChild(ToggleLayout, 1);
     }
 
-    public void AddItem(object toggleView, Action? action = null)
-    {
-        AddItem((IToggleItem)toggleView, action);
-    }
-
-    public void AddItem(IToggleItem toggleItem, Action? action = null)
+    public void AddItem(IToggleItem toggleItem)
     {
         _items.Add(toggleItem);
         ToggleLayout.Children.Add(toggleItem.View);
@@ -94,12 +89,8 @@ public class ToggleGroup<TLayout> : Grid
         toggleItem.View.ViewOnTapped((_) =>
         {
             SelectedItem = toggleItem;
-            action?.Invoke();
         });
 
-        if (SelectedItem == null)
-            SelectedItem = toggleItem;
-
-        toggleItem.UpdateToggleTargets(ToggleActionTrigger.Initialization);
+        toggleItem.UpdateActions(ToggleTrigger.Initialization);
     }
 }

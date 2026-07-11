@@ -2,26 +2,17 @@
 
 public class ToggleGrid : ToggleItem<BaseGrid>
 {
-    public void AddToggleChild<TView>(
-        TView child,
+    public void AddToggleChild(
+        IToggleItem child,
         int row = 0,
         int column = 0,
         int rowSpan = 0,
-        int columnSpan = 0,
-        params ToggleAction<TView>[] actions)
-        where TView : View
+        int columnSpan = 0)
     {
-        var toggleTarget = new ToggleTarget<TView>(
-            child,
-            actions);
+        child.View.InputTransparent = true;
+        child.View.ViewFillHorizontal();
 
-        child.InputTransparent = true;
-
-        View.AddChild(child, row, column, rowSpan, columnSpan);
-        AddToggleTarget(toggleTarget);
-
-        child.ViewFillHorizontal();
-
-        toggleTarget.Update(IsSelected, ToggleActionTrigger.Initialization);
+        View.AddChild(child.View, row, column, rowSpan, columnSpan);
+        AddAction(child.Actions.ToArray());
     }
 }

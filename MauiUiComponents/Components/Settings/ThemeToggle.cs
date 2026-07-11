@@ -65,14 +65,19 @@ public class ThemeToggle<TView> : ToggleGroup<FlexLayout>
         ThemeType theme,
         string localizationKey)
     {
-        var toggleItem = _componentStore.Custom.ToggleGroup
+        var toggleStore = _componentStore.Custom.ToggleGroup;
+
+        var toggleItem = toggleStore
             .BaseTextToggleView<TView>(
                 _componentStore.ResourcesStore.SettingsLocalization,
-                localizationKey,
-                _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(ColorVariant.Primary, ColorVariant.Secondary),
-                new(
-                    (_) => _uiServices.ThemeService.SetTheme(theme),
-                    (_) => { }));
+                localizationKey);
+        toggleItem.AddAction(
+            toggleStore.Styles.ToggleBackgroundColor<TView>(toggleItem.View),
+            new ToggleBehavior<TView>(
+                toggleItem.View,
+                (_) => _uiServices.ThemeService.SetTheme(theme),
+                (_) => { },
+                ToggleTrigger.BusinessAction));
 
         toggleItem.View.ViewFillHorizontal();
 

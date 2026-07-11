@@ -6,7 +6,7 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
     public TView View { get; init; } = new TView();
     View IToggleItem.View => View;
 
-    private readonly List<IToggleTarget> _toggleTargets = new();
+    public List<IToggleBehavior> Actions { get; } = new();
 
     public bool IsSelected
     {
@@ -29,25 +29,32 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
         if (Equals(oldValue, newValue))
             return;
 
-        var control = (ToggleItem<TView>)bindable;
-        var value = (bool)newValue;
+        var item = (ToggleItem<TView>)bindable;
 
-        control.UpdateToggleTargets(
-            ToggleActionTrigger.UIStateChange,
-            ToggleActionTrigger.BusinessAction);
+        item.UpdateActions(
+            ToggleTrigger.UIStateChange,
+            ToggleTrigger.BusinessAction);
     }
 
-    public void AddToggleTarget(IToggleTarget target)
+    public void AddAction(params IToggleBehavior[] actions)
     {
-        if (!_toggleTargets.Contains(target))
-            _toggleTargets.Add(target);
-    }
-
-    public void UpdateToggleTargets(params ToggleActionTrigger[] triggers)
-    {
-        foreach (var target in _toggleTargets)
+        foreach (var action in actions)
         {
-            target.Update(IsSelected, triggers);
+            if (!Actions.Contains(action))
+                Actions.Add(action);
+        }
+    }
+
+
+    public void UpdateActions(params ToggleTrigger[] triggers)
+    {
+        var actions = triggers.Length == 0
+            ? Actions
+            : Actions.Where(a => a.HasTrigger(triggers));
+
+        foreach (var action in actions)
+        {
+            action.Execute(IsSelected);
         }
     }
 }

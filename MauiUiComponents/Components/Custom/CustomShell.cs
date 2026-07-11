@@ -6,8 +6,6 @@ namespace MauiUiComponents;
 public class CustomShell<TView> : BasePage<Grid>, IDisposable
     where TView : View, ITextComponent, new()
 {
-    public ToggleAction<TView>[] BottomBarToggleColorActions = Array.Empty<ToggleAction<TView>>();
-
     private readonly Grid _rootGrid;
     private readonly ScrollView _contentScrollView;
     private readonly ContentView _contentHost;
@@ -32,22 +30,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
             .WithBorder(_componentStore)
             .ColorBackgroundBind(uiServices/*, ColorVariant.Blur*/);
 
-        AddBottomBarToggleColorActions();
         BuildLayout();
-    }
-
-    private void AddBottomBarToggleColorActions()
-    {
-        BottomBarToggleColorActions =
-        [
-            _componentStore.Custom.ToggleGroup.ToggleBackgroundColorAction<TView>(
-                ColorVariant.Primary,
-                ColorVariant.Secondary),
-            //_componentStore.Custom.ToggleGroup.ToggleColorAction<TView>(
-            //    x => x.TextColor,
-            //    ColorVariant.Text,
-            //    ColorVariant.Text)
-        ];
     }
 
     private void BuildLayout()
@@ -162,9 +145,9 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         string route)
     {
         var toggleItem = _componentStore.Custom.ToggleGroup
-            .BaseIconToggleView(
-                iconName,
-                BottomBarToggleColorActions);
+            .BaseIconToggleView<BaseButton>(iconName);
+        toggleItem.AddAction(
+                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor<TView>(toggleItem.View));
 
         AddPage(
             pageFactory,
@@ -181,8 +164,15 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
             throw new InvalidOperationException(
                 $"Page with route '{route}' already exists.");
 
+        toggleItem.AddAction(
+            new ToggleBehavior<TView>(
+                toggleItem.View,
+                (_) => Navigate(route),
+                (_) => { },
+                ToggleTrigger.BusinessAction));
+
         _pages[route] = pageFactory;
-        _bottomBarBorder.View.AddItem(toggleItem, () => Navigate(route));
+        _bottomBarBorder.View.AddItem(toggleItem);
 
         if (_contentHost.Content is null)
         {

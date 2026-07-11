@@ -5,14 +5,6 @@ namespace MauiUiComponents;
 
 public class CustomDropdown<TItem> : ContentView, IDisposable
 {
-    //private readonly static List<ToggleAction<View>> _defaultToggleStyle = new List<ToggleAction<View>>()
-    //{
-    //    new ToggleViewStyle<View>(
-    //        x => x.Background,
-    //        ColorVariant.Primary,
-    //        ColorVariant.None)
-    //};
-
     private readonly ComponentStore _componentStore;
     private readonly IOverlayService _overlayService;
 
@@ -20,12 +12,11 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     private readonly BaseBorder<BaseButton> _dropdownOpenButtonBorder;
     private readonly BaseBorder<ContentView> _selectedItemContentBorder;
 
-    private BaseBorder<CollectionView>? _itemsViewBorder;
     private BaseBorder<ToggleGroup<FlexLayout>>? _itemsToggleBorder;
 
     public readonly BaseLabel TextLabel;
 
-    public Func<TItem, View> ItemTemplate { get; }
+    public Func<TItem, ToggleGrid> ItemTemplate { get; }
 
     #region Bindable Properties
 
@@ -34,7 +25,6 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         get => (IReadOnlyList<TItem>)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
-
     public static readonly BindableProperty ItemsSourceProperty =
         BindableProperty.Create(
             nameof(ItemsSource),
@@ -42,7 +32,6 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
             typeof(CustomDropdown<TItem>),
             Array.Empty<TItem>(),
             propertyChanged: OnItemsSourceChanged);
-
     private static void OnItemsSourceChanged(
         BindableObject bindable,
         object oldValue,
@@ -50,16 +39,19 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        if (dropdown._itemsViewBorder != null)
-            dropdown._itemsViewBorder.View.ItemsSource = (IReadOnlyList<TItem>)newValue;
+        if (dropdown.IsOpened)
+        {
+            dropdown.HideItems();
+            dropdown.ShowItems();
+        }
     }
+
 
     public TItem? SelectedItem
     {
         get => (TItem?)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
-
     public static readonly BindableProperty SelectedItemProperty =
         BindableProperty.Create(
             nameof(SelectedItem),
@@ -68,7 +60,6 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
             default(TItem),
             BindingMode.TwoWay,
             propertyChanged: OnSelectedItemChanged);
-
     private static void OnSelectedItemChanged(
         BindableObject bindable,
         object oldValue,
@@ -76,18 +67,22 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        dropdown._selectedItemContentBorder.View.Content =
-            newValue is TItem item
-                ? dropdown.ItemTemplate(item)
-                : null;
+        if (newValue is TItem item)
+        {
+            var toggleGrid = dropdown.ItemTemplate(item);
+            dropdown._selectedItemContentBorder.View.Content = toggleGrid.View;
+
+            if (dropdown.IsOpened)
+                dropdown.IsOpened = false;
+        }
     }
+
 
     public bool IsOpened
     {
         get => (bool)GetValue(IsOpenedProperty);
         set => SetValue(IsOpenedProperty, value);
     }
-
     public static readonly BindableProperty IsOpenedProperty =
         BindableProperty.Create(
             nameof(IsOpened),
@@ -96,7 +91,6 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
             false,
             BindingMode.TwoWay,
             propertyChanged: OnIsOpenedChanged);
-
     private static void OnIsOpenedChanged(
         BindableObject bindable,
         object oldValue,
@@ -125,7 +119,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     #endregion
 
     public CustomDropdown(
-        Func<TItem, View> itemTemplate,
+        Func<TItem, ToggleGrid> itemTemplate,
         IOverlayService overlayService,
         ComponentStore componentStore)
     {
@@ -139,12 +133,10 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
                 _componentStore,
                 nameof(MaterialSymbols.ArrowDown))
             .WithBorder(componentStore);
+
         TextLabel = _componentStore.Base.Label();
-
         _selectedItemContentBorder = new ContentView().WithBorder(componentStore);
-
-        _rootGridBorder = new BaseGrid()
-            .WithBorder(componentStore);
+        _rootGridBorder = new BaseGrid().WithBorder(componentStore);
 
         BuildLayout();
         SubscribeEvents();
@@ -176,8 +168,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
     private void SubscribeEvents()
     {
-        _dropdownOpenButtonBorder.View.Clicked += OnToggleClicked;
-
+        _dropdownOpenButtonBorder.View.Clicked += (_, _) => IsOpened = !IsOpened;
         _selectedItemContentBorder.ViewOnTapped(_ => IsOpened = !IsOpened);
     }
 
@@ -190,25 +181,46 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         if (_itemsToggleBorder != null)
             return;
 
-        var collectionView = new CollectionView
+        var toggleGroup = new ToggleGroup<FlexLayout>(_componentStore);
+        toggleGroup.ToggleLayout.FlexColumn();
+
+        ToggleGrid? selectedView = null;
+
+        foreach (var item in ItemsSource)
         {
-            ItemsSource = ItemsSource,
-            SelectedItem = SelectedItem,
-            SelectionMode = SelectionMode.Single,
-            ItemTemplate = CreateItemTemplate(),
-            MinimumWidthRequest = _selectedItemContentBorder.Width
-        };
+            var toggleGrid = ItemTemplate(item);
+            toggleGrid.View.MinimumWidthRequest = _selectedItemContentBorder.Width;
 
-        collectionView.SelectionChanged += OnSelectionChanged;
+            toggleGrid.AddAction(
+                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor<BaseGrid>(
+                    toggleGrid.View,
+                    unselectedColor: ColorVariant.None));
 
-        _itemsViewBorder = collectionView
-            .WithBorder(_componentStore, backgroundColor: ColorVariant.Blur);
+            toggleGrid.AddAction(
+                new ToggleBehavior<BaseGrid>(
+                    toggleGrid.View,
+                    _ => SelectedItem = item,
+                    _ => { },
+                    ToggleTrigger.BusinessAction));
+
+            toggleGroup.AddItem(toggleGrid);
+
+            if (SelectedItem != null && SelectedItem.Equals(item))
+                selectedView = toggleGrid;
+        }
+
+        toggleGroup.SelectedItem = selectedView;
+
+        _itemsToggleBorder = toggleGroup
+            .WithBorder(
+                _componentStore,
+                backgroundColor: ColorVariant.Blur);
 
         _overlayService.AddOverlay(
-            _itemsViewBorder,
+            _itemsToggleBorder,
             OverlayPlacement.BelowAnchor,
             this,
-            v => IsOpened = false);
+            _ => IsOpened = false);
     }
 
     private void HideItems()
@@ -216,61 +228,15 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         if (_itemsToggleBorder == null)
             return;
 
-        _itemsViewBorder.View.SelectionChanged -= OnSelectionChanged;
-
         _overlayService.RemoveOverlay(_itemsToggleBorder);
 
         _itemsToggleBorder = null;
-    }
-
-    private DataTemplate CreateItemTemplate()
-    {
-        return new DataTemplate(() =>
-        {
-            var host = new ContentView();
-
-            host.BindingContextChanged += (_, _) =>
-            {
-                if (host.BindingContext is TItem item)
-                {
-                    var view = ItemTemplate(item);
-                    view.MinimumWidthRequest = _selectedItemContentBorder.Width;
-                    host.Content = view;
-                }
-            };
-
-            return host;
-        });
-    }
-
-    #endregion
-
-    #region Events
-
-    private void OnToggleClicked(
-        object? sender,
-        EventArgs e)
-    {
-        IsOpened = !IsOpened;
-    }
-
-    private void OnSelectionChanged(
-        object? sender,
-        SelectionChangedEventArgs e)
-    {
-        if (e.CurrentSelection.FirstOrDefault() is not TItem item)
-            return;
-
-        SelectedItem = item;
-        IsOpened = false;
     }
 
     #endregion
 
     public void Dispose()
     {
-        _dropdownOpenButtonBorder.View.Clicked -= OnToggleClicked;
-
         HideItems();
     }
 }

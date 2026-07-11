@@ -23,4 +23,16 @@ public class CustomComponentStore
         var slider = new CustomTextSlider<TValue>(_componentStore);
         return slider;
     }
+
+    public CustomDropdown<TItem> Dropdown<TItem>(
+        IOverlayService overlayService,
+        Func<TItem, ToggleGrid> itemTemplate,
+        params TItem[] items)
+    {
+        var dropdown = new CustomDropdown<TItem>(itemTemplate, overlayService, _componentStore)
+        {
+            ItemsSource = items
+        };
+        return dropdown;
+    }
 }

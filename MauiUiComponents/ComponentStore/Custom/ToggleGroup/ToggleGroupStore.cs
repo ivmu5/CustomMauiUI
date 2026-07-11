@@ -1,5 +1,4 @@
 ﻿using MauiUiSettings;
-using System.Linq.Expressions;
 
 namespace MauiUiComponents;
 
@@ -8,47 +7,20 @@ public class ToggleGroupStore
     private readonly UiServiceStore _uiServices;
     private readonly ComponentStore _componentStore;
 
+    public ToggleGroupStyleStore Styles { get; }
+
+
+
     public ToggleGroupStore(
         UiServiceStore uiServices,
         ComponentStore componentStore)
     {
         _uiServices = uiServices;
         _componentStore = componentStore;
+
+        Styles = new ToggleGroupStyleStore(_uiServices);
     }
 
-    public ToggleAction<TView> ToggleColorAction<TView>(
-        Expression<Func<TView, object?>> propertyExpression,
-        ColorVariant selectedColor = ColorVariant.Primary,
-        ColorVariant unselectedColor = ColorVariant.Secondary)
-        where TView : View
-    {
-        return new(
-            (view) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
-            (view) => view.ColorBind(_uiServices, propertyExpression, unselectedColor),
-            ToggleActionTrigger.Initialization,
-            ToggleActionTrigger.UIStateChange);
-    }
-
-    public ToggleAction<TView> ToggleBackgroundColorAction<TView>(
-        ColorVariant selectedColor = ColorVariant.Primary,
-        ColorVariant unselectedColor = ColorVariant.Secondary)
-        where TView : View
-    {
-        return ToggleColorAction<TView>(
-            x => x.Background,
-            selectedColor,
-            unselectedColor);
-    }
-
-
-
-    public ToggleItem<TView> ToggleView<TView>(Action<ToggleItem<TView>> viewTemplate)
-        where TView : View, new()
-    {
-        var toggleView = new ToggleItem<TView>();
-        viewTemplate(toggleView);
-        return toggleView;
-    }
 
     public ToggleGroup<TLayout> ToggleGroup<TLayout>()
         where TLayout : Layout, new()
@@ -86,7 +58,7 @@ public class ToggleGroupStore
     public ToggleItem<TView> BaseTextToggleView<TView>(
         ILocalizationResourceManager localizationManager,
         string localizationKey,
-        params ToggleAction<TView>[] actions)
+        params ToggleBehavior<TView>[] actions)
         where TView : View, ITextComponent, new()
     {
         var toggleView = new ToggleItem<TView>();
@@ -97,17 +69,14 @@ public class ToggleGroupStore
                 localizationManager,
                 localizationKey);
 
-        var toggleTarget = new ToggleTarget<TView>(
-            toggleView.View,
-            actions);
-        toggleView.AddToggleTarget(toggleTarget);
+        toggleView.AddAction(actions);
 
         return toggleView;
     }
 
     public ToggleItem<TView> BaseIconToggleView<TView>(
         string iconKey,
-        params ToggleAction<TView>[] actions)
+        params ToggleBehavior<TView>[] actions)
         where TView : View, ITextComponent, new()
     {
         var toggleIconView = new ToggleItem<TView>();
@@ -118,10 +87,7 @@ public class ToggleGroupStore
                 _componentStore,
                 iconKey);
 
-        var toggleTarget = new ToggleTarget<TView>(
-            toggleIconView.View,
-            actions);
-        toggleIconView.AddToggleTarget(toggleTarget);
+        toggleIconView.AddAction(actions);
 
         return toggleIconView;
     }
