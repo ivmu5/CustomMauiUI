@@ -39,7 +39,7 @@ public class ThemeService : UiServiceBase<ThemeService>, IDisposable
         {
             ThemeType.Dark => true,
             ThemeType.Light => false,
-            ThemeType.System => Application.Current!.RequestedTheme == AppTheme.Dark,
+            ThemeType.System => SystemThemeIsDark(),
             _ => DefaultThemeIsDark
         };
     }
@@ -55,6 +55,11 @@ public class ThemeService : UiServiceBase<ThemeService>, IDisposable
                 ? DefaultThemeIsDark
                 : e.RequestedTheme == AppTheme.Dark;
         }
+    }
+
+    public static bool SystemThemeIsDark()
+    {
+        return Application.Current!.RequestedTheme == AppTheme.Dark;
     }
 
     public void Dispose()
