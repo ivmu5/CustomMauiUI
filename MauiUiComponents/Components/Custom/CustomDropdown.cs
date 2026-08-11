@@ -4,6 +4,7 @@ using MauiUiSettings.Resources.Localization.MaterialSymbols;
 namespace MauiUiComponents;
 
 public class CustomDropdown<TItem> : ContentView, IDisposable
+    where TItem : notnull
 {
     private readonly ComponentStore _componentStore;
     private readonly IOverlayService _overlayService;
@@ -12,11 +13,11 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     private readonly BaseBorder<BaseButton> _dropdownOpenButtonBorder;
     private readonly BaseBorder<ContentView> _selectedItemContentBorder;
 
-    private BaseBorder<ToggleGroup<FlexLayout>>? _itemsToggleBorder;
+    private BaseBorder<ToggleGroup<TItem, FlexLayout>>? _itemsToggleBorder;
 
-    public readonly BaseLabel TextLabel;
+    public readonly BaseLabel CaptionLabel;
 
-    public Func<TItem, ToggleGrid> ItemTemplate { get; }
+
 
     #region Bindable Properties
 
@@ -39,11 +40,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
     {
         var dropdown = (CustomDropdown<TItem>)bindable;
 
-        if (dropdown.IsOpened)
-        {
-            dropdown.HideItems();
-            dropdown.ShowItems();
-        }
+        dropdown.Rebuild();
     }
 
 
@@ -114,8 +111,32 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
     #endregion
 
+    public Func<TItem, IToggleItem> ItemTemplate
+    {
+        get;
+        set
+        {
+            field = value;
+            Rebuild();
+        }
+    }
+
+    public bool UseCaptionLabel
+    {
+        get;
+        set
+        {
+            field = value;
+            _rootGridBorder.View.RowDefinitions[0].Height = field
+                ? GridLength.Auto
+                : 0;
+        }
+    }
+
+
+
     public CustomDropdown(
-        Func<TItem, ToggleGrid> itemTemplate,
+        Func<TItem, IToggleItem> itemTemplate,
         IOverlayService overlayService,
         ComponentStore componentStore)
     {
@@ -130,7 +151,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
                 nameof(MaterialSymbols.ArrowDown))
             .WithBorder(componentStore);
 
-        TextLabel = _componentStore.Base.Label();
+        CaptionLabel = _componentStore.Base.Label();
         _selectedItemContentBorder = new ContentView().WithBorder(componentStore);
         _rootGridBorder = new BaseGrid().WithBorder(componentStore);
 
@@ -142,7 +163,7 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
 
     private void BuildLayout()
     {
-        TextLabel.ViewCenter();
+        CaptionLabel.ViewCenter();
 
         _rootGridBorder.View
             .AddStarColumn()
@@ -151,12 +172,12 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
             .AddStarRow();
 
         _rootGridBorder.View
-            .AddChild(TextLabel, 0, 0, columnSpan: 2)
+            .AddChild(CaptionLabel, 0, 0, columnSpan: 2)
             .AddChild(_selectedItemContentBorder, 1, 0)
             .AddChild(_dropdownOpenButtonBorder, 1, 1);
 
         _dropdownOpenButtonBorder.View.TextBind(
-            _componentStore.ResourcesStore.MaterialSymbolsManager,
+            _componentStore.LocalizationStore.MaterialSymbolsManager,
             nameof(MaterialSymbols.ArrowDown));
 
         Content = _rootGridBorder;
@@ -177,34 +198,30 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         if (_itemsToggleBorder != null)
             return;
 
-        var toggleGroup = new ToggleGroup<FlexLayout>(_componentStore);
+        var toggleGroup = _componentStore.Custom.ToggleGroup.ToggleGroup<TItem, FlexLayout>(
+            ItemsSource,
+            item =>
+            {
+                var toggleItem = ItemTemplate(item);
+
+                toggleItem.View.MinimumWidthRequest = _selectedItemContentBorder.Width;
+
+                toggleItem.AddAction(
+                    _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor<View>(
+                        toggleItem.View,
+                        ColorVariant.Primary,
+                        ColorVariant.None));
+
+                return toggleItem;
+            },
+            SelectedItem);
+
         toggleGroup.ToggleLayout.FlexColumn();
 
-        ToggleGrid? selectedView = null;
-
-        foreach (var item in ItemsSource)
-        {
-            var toggleGrid = ItemTemplate(item);
-            toggleGrid.View.MinimumWidthRequest = _selectedItemContentBorder.Width;
-
-            toggleGrid.AddAction(
-                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor<BaseGrid>(
-                    toggleGrid.View,
-                    unselectedColor: ColorVariant.None));
-
-            toggleGrid.AddAction(
-                new ToggleBehavior<BaseGrid>(
-                    toggleGrid.View,
-                    _ => SelectedItem = item,
-                    ToggleTrigger.BusinessAction));
-
-            toggleGroup.AddItem(toggleGrid);
-
-            if (SelectedItem != null && SelectedItem.Equals(item))
-                selectedView = toggleGrid;
-        }
-
-        toggleGroup.SelectedItem = selectedView;
+        this.Bind(
+            cd => cd.SelectedItem,
+            toggleGroup,
+            tg => tg.SelectedItem);
 
         _itemsToggleBorder = toggleGroup
             .WithBorder(
@@ -226,6 +243,15 @@ public class CustomDropdown<TItem> : ContentView, IDisposable
         _overlayService.RemoveOverlay(_itemsToggleBorder);
 
         _itemsToggleBorder = null;
+    }
+
+    private void Rebuild()
+    {
+        if (IsOpened)
+        {
+            HideItems();
+            ShowItems();
+        }
     }
 
     public void UpdateSelectedItemContent()

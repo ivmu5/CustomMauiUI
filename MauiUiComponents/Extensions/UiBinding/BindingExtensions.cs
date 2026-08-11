@@ -89,6 +89,15 @@ public static class BindingExtensions
     public static BindableProperty GetBindableProperty<T, TValue>(
         this Expression<Func<T, TValue>> expression)
     {
+        string propertyName = expression.GetPropertyName();
+
+        return typeof(T)
+            .GetBindableProperty(propertyName);
+    }
+
+    public static string GetPropertyName<T, TValue>(
+        this Expression<Func<T, TValue>> expression)
+    {
         Expression body = expression.Body;
 
         if (body is UnaryExpression unary)
@@ -98,7 +107,6 @@ public static class BindingExtensions
             throw new InvalidOperationException(
                 "Expression must be property access.");
 
-        return typeof(T)
-            .GetBindableProperty(member.Member.Name);
+        return member.Member.Name;
     }
 }

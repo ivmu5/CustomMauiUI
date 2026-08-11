@@ -7,7 +7,7 @@ public class SettingsPage : BasePage<ScrollView>
 {
     private readonly VerticalStackLayout _layout;
 
-    private readonly BaseBorder<ThemeToggle<BaseButton>> _themeToggleBorder;
+    private readonly BaseBorder<ToggleGroup<ThemeType, FlexLayout>> _themeToggleBorder;
     private readonly BaseBorder<CornerRadiusSlider> _cornerRadiusSliderBorder;
     private readonly CustomDropdown<SupportedLanguage> _languageDropdown;
 
@@ -15,10 +15,8 @@ public class SettingsPage : BasePage<ScrollView>
 
 
 
-    public SettingsPage(
-        UiServiceStore uiServices,
-        ComponentStore componentStore)
-        : base(uiServices, componentStore)
+    public SettingsPage(ComponentStore componentStore)
+        : base(componentStore)
     {
         _themeToggleBorder = componentStore.Settings.ThemeToggle<BaseButton>().WithBorder(componentStore);
         _cornerRadiusSliderBorder = componentStore.Settings.CornerRadiusSlider().WithBorder(componentStore);
@@ -27,7 +25,7 @@ public class SettingsPage : BasePage<ScrollView>
         _saveButtonBorder = componentStore.Base
             .Button(ColorVariant.Primary)
             .TextBind(
-                _componentStore.ResourcesStore.SettingsLocalization,
+                _componentStore.LocalizationStore.SettingsLocalization,
                 nameof(UiSettingsResources.SettingsSave))
             .WithBorder(componentStore);
         _saveButtonBorder.View.Clicked += OnSaveButtonClicked;
@@ -49,8 +47,8 @@ public class SettingsPage : BasePage<ScrollView>
 
     private async void OnSaveButtonClicked(object? sender, EventArgs e)
     {
-        await _uiServices.UISettings.SaveAsync();
+        await _componentStore.UiServices.UISettings.SaveAsync();
         _componentStore.Snackbar.Success(
-            _componentStore.ResourcesStore.SettingsLocalization[nameof(UiSettingsResources.SettingsSaved)]);
+            _componentStore.LocalizationStore.SettingsLocalization[nameof(UiSettingsResources.SettingsSaved)]);
     }
 }

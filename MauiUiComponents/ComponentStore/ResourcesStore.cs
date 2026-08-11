@@ -3,12 +3,12 @@ using MauiUiSettings.Resources.Localization.MaterialSymbols;
 
 namespace MauiUiComponents;
 
-public class ResourcesStore
+public class LocalizationStore
 {
     public LocalizationResourceManager<UiSettingsResources> SettingsLocalization { get; init; }
     public LocalizationResourceManager<MaterialSymbols> MaterialSymbolsManager { get; init; }
 
-    public ResourcesStore(
+    public LocalizationStore(
         LocalizationResourceManager<UiSettingsResources> settingsLocalization,
         LocalizationResourceManager<MaterialSymbols> materialSymbolsManager)
     {

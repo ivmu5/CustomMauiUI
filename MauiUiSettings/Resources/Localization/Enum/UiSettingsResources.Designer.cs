@@ -115,6 +115,24 @@ namespace MauiUiSettings.Resources.Localization.Enum {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Cancel.
+        /// </summary>
+        public static string SettingsCancel {
+            get {
+                return ResourceManager.GetString("SettingsCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на OK.
+        /// </summary>
+        public static string SettingsOK {
+            get {
+                return ResourceManager.GetString("SettingsOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Save.
         /// </summary>
         public static string SettingsSave {

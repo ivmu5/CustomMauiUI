@@ -5,35 +5,36 @@ namespace MauiUiComponents;
 
 public class ToggleGroupStyleStore
 {
-    private readonly UiServiceStore _uiServices;
+    private readonly ComponentStore _componentStore;
 
-    public ToggleGroupStyleStore(UiServiceStore uiServices)
+    public ToggleGroupStyleStore(ComponentStore componentStore)
     {
-        _uiServices = uiServices;
+        _componentStore = componentStore;
     }
 
-    public ToggleBehavior<TView> ToggleColor<TView>(
-        View view,
+    public ToggleAction<TView> ToggleColor<TView>(
+        TView view,
         Expression<Func<TView, object?>> propertyExpression,
         ColorVariant selectedColor = ColorVariant.Primary,
         ColorVariant unselectedColor = ColorVariant.Secondary)
-        where TView : View, new()
+        where TView : View
     {
         return new(
             view,
-            (view) => view.ColorBind(_uiServices, propertyExpression, selectedColor),
-            (view) => view.ColorBind(_uiServices, propertyExpression, unselectedColor),
-            ToggleTrigger.Initialization,
-            ToggleTrigger.UIStateChange);
+            "SetColor" + propertyExpression.GetPropertyName(),
+            (view) => view.ColorBind(_componentStore.UiServices, propertyExpression, selectedColor),
+            (view) => view.ColorBind(_componentStore.UiServices, propertyExpression, unselectedColor),
+            ToggleActionTrigger.Initialization,
+            ToggleActionTrigger.UIStateChange);
     }
 
-    public ToggleBehavior<TView> ToggleBackgroundColor<TView>(
-        View view,
+    public ToggleAction<TView> ToggleBackgroundColor<TView>(
+        TView view,
         ColorVariant selectedColor = ColorVariant.Primary,
         ColorVariant unselectedColor = ColorVariant.Secondary)
-        where TView : View, new()
+        where TView : View
     {
-        return ToggleColor<TView>(
+        return ToggleColor(
             view,
             x => x.Background,
             selectedColor,

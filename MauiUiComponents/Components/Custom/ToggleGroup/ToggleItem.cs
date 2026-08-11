@@ -6,7 +6,7 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
     public TView View { get; init; }
     View IToggleItem.View => View;
 
-    public List<IToggleBehavior> Actions { get; } = new();
+    public List<IToggleAction> Actions { get; } = new();
 
     public bool IsSelected
     {
@@ -32,8 +32,8 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
         var item = (ToggleItem<TView>)bindable;
 
         item.UpdateActions(
-            ToggleTrigger.UIStateChange,
-            ToggleTrigger.BusinessAction);
+            ToggleActionTrigger.UIStateChange,
+            ToggleActionTrigger.BusinessAction);
     }
 
 
@@ -41,19 +41,20 @@ public class ToggleItem<TView> : BindableObject, IToggleItem
     public ToggleItem(TView? view = null)
     {
         View = view ?? new TView();
+       
     }
 
-    public void AddAction(params IToggleBehavior[] actions)
+    public void AddAction(params IToggleAction[] actions)
     {
         foreach (var action in actions)
         {
-            if (!Actions.Contains(action))
+            if (Actions.FirstOrDefault(a => a.ActionName == action.ActionName) == null)
                 Actions.Add(action);
         }
     }
 
 
-    public void UpdateActions(params ToggleTrigger[] triggers)
+    public void UpdateActions(params ToggleActionTrigger[] triggers)
     {
         var actions = triggers.Length == 0
             ? Actions

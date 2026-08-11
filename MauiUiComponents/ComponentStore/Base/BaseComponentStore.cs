@@ -5,11 +5,11 @@ namespace MauiUiComponents;
 
 public class BaseComponentStore
 {
-    private readonly UiServiceStore _uiServices;
+    private readonly ComponentStore _componentStore;
 
-    public BaseComponentStore(UiServiceStore uiServices)
+    public BaseComponentStore(ComponentStore componentStore)
     {
-        _uiServices = uiServices;
+        _componentStore = componentStore;
     }
 
     private T BaseBind<T>(
@@ -19,8 +19,8 @@ public class BaseComponentStore
         where T : View, ITextComponent
     {
         view
-            .ColorBackgroundBind(_uiServices, backgroundColor)
-            .TextStyleBind(_uiServices, fontVariant);
+            .ColorBackgroundBind(_componentStore.UiServices, backgroundColor)
+            .TextStyleBind(_componentStore.UiServices, fontVariant);
 
         return view;
     }
@@ -51,7 +51,7 @@ public class BaseComponentStore
         ColorVariant backgroundColor = ColorVariant.Secondary,
         FontVariant fontVariant = FontVariant.Text)
         => BaseBind(new BaseEditor(), backgroundColor, fontVariant);
-    
+
 
 
     public BaseBorder<T> Border<T>(
@@ -62,9 +62,9 @@ public class BaseComponentStore
     {
         var border = new BaseBorder<T>(view);
         return border
-            .ColorBackgroundBind(_uiServices, backgroundColor)
-            .ColorBind(_uiServices, x => x.Stroke, strokeColor)
-            .BorderRoundRectangleBind(_uiServices);
+            .ColorBackgroundBind(_componentStore.UiServices, backgroundColor)
+            .ColorBind(_componentStore.UiServices, x => x.Stroke, strokeColor)
+            .BorderRoundRectangleBind(_componentStore.UiServices);
     }
 
     public BaseSlider<TValue> Slider<TValue>(
@@ -75,8 +75,8 @@ public class BaseComponentStore
     {
         var slider = new BaseSlider<TValue>();
         return slider
-            .ColorBind(_uiServices, x => x.MinimumTrackColor, minimumTrackColor)
-            .ColorBind(_uiServices, x => x.MaximumTrackColor, maximumTrackColor)
-            .ColorBind(_uiServices, x => x.ThumbColor, thumbColor);
+            .ColorBind(_componentStore.UiServices, x => x.MinimumTrackColor, minimumTrackColor)
+            .ColorBind(_componentStore.UiServices, x => x.MaximumTrackColor, maximumTrackColor)
+            .ColorBind(_componentStore.UiServices, x => x.ThumbColor, thumbColor);
     }
 }

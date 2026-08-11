@@ -4,26 +4,29 @@ namespace MauiUiComponents;
 
 public class ComponentStore
 {
-    public ResourcesStore ResourcesStore { get; init; }
+    public UiServiceStore UiServices { get; }
 
-    public BaseComponentStore Base { get; init; }
-    public CustomComponentStore Custom { get; init; }
-    public SettingsComponentStore Settings { get; init; }
+    public LocalizationStore LocalizationStore { get; }
 
-    public SnackbarService Snackbar { get; init; }
+    public BaseComponentStore Base { get; }
+    public CustomComponentStore Custom { get; }
+    public SettingsComponentStore Settings { get; }
+
+    public SnackbarService Snackbar { get; }
 
 
 
     public ComponentStore(
         UiServiceStore uiServices,
         SnackbarService snackbarService,
-        ResourcesStore resourcesStore)
+        LocalizationStore localizationStore)
     {
-        ResourcesStore = resourcesStore;
+        LocalizationStore = localizationStore;
+        UiServices = uiServices;
 
-        Base = new BaseComponentStore(uiServices);
-        Custom = new CustomComponentStore(uiServices, this);
-        Settings = new SettingsComponentStore(uiServices, this);
+        Base = new BaseComponentStore(this);
+        Custom = new CustomComponentStore(this);
+        Settings = new SettingsComponentStore(this);
         Snackbar = snackbarService;
     }
 

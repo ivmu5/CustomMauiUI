@@ -71,7 +71,7 @@ public static class TextComponentExtensions
         string iconKey)
         where T : BindableObject, ITextComponent
     {
-        view.TextBind(componentStore.ResourcesStore.MaterialSymbolsManager, iconKey);
+        view.TextBind(componentStore.LocalizationStore.MaterialSymbolsManager, iconKey);
         return view;
     }
 

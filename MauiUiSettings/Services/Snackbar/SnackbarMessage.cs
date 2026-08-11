@@ -1,10 +1,12 @@
-﻿namespace MauiUiSettings;
+﻿using MauiUiSettings.Resources.Localization.Enum;
+
+namespace MauiUiSettings;
 
 public class SnackbarMessage
 {
     public string Message { get; set; } = string.Empty;
 
-    public string ActionText { get; set; } = "OK";
+    public string ActionText { get; set; } = UiSettingsResources.SettingsOK;
 
     public Func<Task>? Action { get; set; }
 

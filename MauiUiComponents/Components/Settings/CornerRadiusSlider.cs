@@ -26,7 +26,7 @@ public class CornerRadiusSlider : CustomTextSlider<int>
         AddResetValueButton(CornerRadiusService.DefaultCornerRadius);
 
         TextLabel.TextBind(
-            ComponentStore.ResourcesStore.SettingsLocalization,
+            ComponentStore.LocalizationStore.SettingsLocalization,
             nameof(UiSettingsResources.CornerRadiusSetting));
     }
 

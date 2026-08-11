@@ -1,5 +1,4 @@
 ﻿using MauiUiSettings;
-using Microsoft.Maui.Layouts;
 
 namespace MauiUiComponents;
 
@@ -15,7 +14,6 @@ public class BasePage<TLayout> : ContentPage
     //    }
     //}
 
-    protected internal UiServiceStore _uiServices;
     protected internal ComponentStore _componentStore;
 
     private readonly Grid _rootLayout;
@@ -25,11 +23,8 @@ public class BasePage<TLayout> : ContentPage
 
 
 
-    public BasePage(
-        UiServiceStore uiServices,
-        ComponentStore componentStore)
+    public BasePage(ComponentStore componentStore)
     {
-        _uiServices = uiServices;
         _componentStore = componentStore;
 
         _rootLayout = new Grid();
@@ -46,7 +41,7 @@ public class BasePage<TLayout> : ContentPage
             componentStore);
 
         this.ColorBind(
-            _uiServices,
+            _componentStore.UiServices,
             x => x.BackgroundColor,
             ColorVariant.Background);
     }

@@ -2,6 +2,10 @@
 
 namespace MauiUiComponents;
 
+// TODO: Сделать ValueSynchronizer универсальным относительно синхронизируемого свойства.
+// Сейчас синхронизация жёстко привязана к IBindableValue<TValue>.BindableValue.
+// В будущем свойство для синхронизации должно передаваться разработчиком,
+// например через nameof(MyControl.Value), чтобы синхронизировать произвольные свойства.
 public class ValueSynchronizer<TValue> : IDisposable
 {
     private readonly HashSet<IBindableValue<TValue>> _bindableValues = new();

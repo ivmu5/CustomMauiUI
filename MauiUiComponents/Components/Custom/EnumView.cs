@@ -5,12 +5,41 @@ namespace MauiUiComponents;
 public static class EnumView<TEnum>
     where TEnum : struct, Enum
 {
+    public static ToggleGroup<TEnum, TLayout> ToggleGroup<TLayout>(
+        ComponentStore componentStore,
+        Func<TEnum, IToggleItem>? itemTemplate = null)
+        where TLayout : Layout, new()
+    {
+        itemTemplate ??= item => CreateDefaultToggle<BaseButton>(
+            item, 
+            componentStore,
+            () => componentStore.Base.Button());
+
+        return componentStore.Custom.ToggleGroup.ToggleGroup<TEnum, TLayout>(
+            Enum.GetValues<TEnum>(),
+            itemTemplate);
+    }
+
     public static CustomDropdown<TEnum> Dropdown(
         IOverlayService overlayService,
         ComponentStore componentStore,
-        Func<TEnum, ToggleGrid>? itemTemplate = null)
+        Func<TEnum, IToggleItem>? itemTemplate = null)
     {
-        itemTemplate ??= item => CreateDefaultToggle(item, componentStore);
+        itemTemplate ??= item =>
+        {
+            var toggleItem = CreateDefaultToggle(
+                item,
+                componentStore,
+                () => componentStore.Base.Label());
+
+            toggleItem.View
+                .TextLeft()
+                .ViewVerticalCenter()
+                .Padding = 10;
+
+            return toggleItem;
+        };
+
 
         return componentStore.Custom.Dropdown(
             overlayService,
@@ -18,17 +47,13 @@ public static class EnumView<TEnum>
             Enum.GetValues<TEnum>());
     }
 
-    public static ToggleGrid CreateDefaultToggle(
+    public static ToggleItem<TToggleView> CreateDefaultToggle<TToggleView>(
         TEnum item,
-        ComponentStore componentStore)
+        ComponentStore componentStore,
+        Func<TToggleView>? viewTemplate = null)
+        where TToggleView : View, ITextComponent, new()
     {
-        var toggleGrid = new ToggleGrid();
-        var toggleLabel = new ToggleItem<BaseLabel>(
-            componentStore.Base.Label());
-        toggleLabel.View.Margin = 10;
-        toggleLabel.View
-            .ViewVerticalCenter()
-            .ViewHorizontalStart();
+        var toggleView = new ToggleItem<TToggleView>(viewTemplate?.Invoke());
 
         if (item.GetDisplayAttribute() is
             {
@@ -36,17 +61,16 @@ public static class EnumView<TEnum>
                 Name: { } name
             })
         {
-            toggleLabel.View.TextBind(
-                componentStore.ResourcesStore.GetLocalizationManager(resourceType),
+            toggleView.View.TextBind(
+                componentStore.LocalizationStore.GetLocalizationManager(resourceType),
                 name);
         }
         else
         {
-            toggleLabel.View.Text = item.ToString();
+            toggleView.View.Text = item.ToString();
         }
 
-        toggleGrid.AddToggleChild(toggleLabel);
 
-        return toggleGrid;
+        return toggleView;
     }
 }

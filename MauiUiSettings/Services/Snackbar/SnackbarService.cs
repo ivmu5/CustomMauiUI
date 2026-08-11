@@ -136,7 +136,7 @@ public class SnackbarService
             TextColor = _colorService.Text,
             ActionButtonTextColor = GetActionButtonTextColor(message.Type),
 
-            CornerRadius = new CornerRadius(_cornerRadiusService.CornerRadius * 1.5f),
+            CornerRadius = new CornerRadius(_cornerRadiusService.CornerRadius),
 
             Font = _fontService.CurrentFont,
             ActionButtonFont = _fontService.CurrentFontBold

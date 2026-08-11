@@ -10,11 +10,10 @@ public class CustomComponentStore
     public readonly ToggleGroupStore ToggleGroup;
 
     public CustomComponentStore(
-        UiServiceStore uiServices,
         ComponentStore componentStore)
     {
         _componentStore = componentStore;
-        ToggleGroup = new ToggleGroupStore(uiServices, _componentStore);
+        ToggleGroup = new ToggleGroupStore(_componentStore);
     }
 
     public CustomTextSlider<TValue> TextSlider<TValue>()
@@ -26,8 +25,9 @@ public class CustomComponentStore
 
     public CustomDropdown<TItem> Dropdown<TItem>(
         IOverlayService overlayService,
-        Func<TItem, ToggleGrid> itemTemplate,
+        Func<TItem, IToggleItem> itemTemplate,
         params TItem[] items)
+        where TItem : notnull
     {
         var dropdown = new CustomDropdown<TItem>(itemTemplate, overlayService, _componentStore)
         {

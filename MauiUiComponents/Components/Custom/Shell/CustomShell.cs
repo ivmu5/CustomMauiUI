@@ -9,26 +9,31 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     private readonly Grid _rootGrid;
     private readonly ScrollView _contentScrollView;
     private readonly ContentView _contentHost;
-    private readonly BaseBorder<ToggleGroup<FlexLayout>> _bottomBarBorder;
+    private readonly BaseBorder<ToggleGroup<string, FlexLayout>> _bottomBarBorder;
 
-    private readonly Dictionary<string, Func<ContentPage>> _pages = new();
+    private readonly Dictionary<string, PageShellFactory> _pageShellFactories = new();
 
     public WindowOrientation CurrentOrientation { get; private set; }
 
 
 
-    public CustomShell(
-        UiServiceStore uiServices,
-        ComponentStore componentStore)
-        : base(uiServices, componentStore)
+    public CustomShell(ComponentStore componentStore)
+        : base(componentStore)
     {
         _rootGrid = new();
         _contentHost = new();
         _contentScrollView = new();
         _bottomBarBorder = componentStore.Custom.ToggleGroup
-            .ToggleGroup<FlexLayout>()
+            .ToggleGroup<string, FlexLayout>(
+                new List<string>(),
+                route =>
+                {
+                    var toggleItem = new ToggleItem<TView>();
+
+                    return toggleItem;
+                })
             .WithBorder(_componentStore)
-            .ColorBackgroundBind(uiServices/*, ColorVariant.Blur*/);
+            .ColorBackgroundBind(_componentStore.UiServices/*, ColorVariant.Blur*/);
 
         BuildLayout();
     }
@@ -49,8 +54,25 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
         AddChildren(_rootGrid);
 
-        ApplyOrientation(_uiServices.WindowService.Orientation);
-        _uiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
+        ApplyOrientation(_componentStore.UiServices.WindowService.Orientation);
+
+        _bottomBarBorder.View.ItemTemplate =
+            (item) =>
+            {
+                var pageShellFactory = _pageShellFactories[item];
+
+                var toggleItem = pageShellFactory.PageButtonFactory.Invoke();
+                toggleItem.AddAction(
+                    new ToggleAction<View>(
+                        toggleItem.View,
+                        "NavigateShellAction",
+                        _ => Navigate(item),
+                        ToggleActionTrigger.BusinessAction));
+
+                return toggleItem;
+            };
+
+        _componentStore.UiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
     }
 
     private void OnWindowsPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -58,7 +80,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         if (e.PropertyName != nameof(WindowService.Orientation))
             return;
 
-        SetOrientation(_uiServices.WindowService.Orientation);
+        SetOrientation(_componentStore.UiServices.WindowService.Orientation);
     }
 
     public void SetOrientation(WindowOrientation orientation)
@@ -107,7 +129,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
         _bottomBarBorder.View.ToggleLayout.FlexRow();
 
-        _uiServices.StatusBarService.IsVisible = true;
+        _componentStore.UiServices.StatusBarService.IsVisible = true;
 
         SnackbarService.SetBaseAnchor(_bottomBarBorder);
     }
@@ -134,7 +156,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
         _bottomBarBorder.View.ToggleLayout.FlexColumn();
 
-        _uiServices.StatusBarService.IsVisible = false;
+        _componentStore.UiServices.StatusBarService.IsVisible = false;
 
         SnackbarService.SetBaseAnchor();
     }
@@ -145,56 +167,53 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         string route)
     {
         var toggleItem = _componentStore.Custom.ToggleGroup
-            .BaseIconToggleView<BaseButton>(iconName);
+            .BaseIconToggleView<TView>(iconName);
         toggleItem.AddAction(
-                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor<TView>(toggleItem.View));
+                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor(toggleItem.View));
+
+        var pageShellFactory = new PageShellFactory(
+            pageFactory,
+            () =>
+            {
+                var toggleButton = new ToggleItem<BaseButton>(
+                    _componentStore.Base.Button(fontVariant: FontVariant.Icon));
+                toggleButton.View.TextIconBind(_componentStore, iconName);
+
+                return toggleButton;
+            });
 
         AddPage(
-            pageFactory,
-            toggleItem,
+            pageShellFactory,
             route);
     }
 
     public void AddPage(
-        Func<ContentPage> pageFactory,
-        IToggleItem toggleItem,
+        PageShellFactory pageShellFactory,
         string route)
     {
-        if (_pages.ContainsKey(route))
+        if (_pageShellFactories.ContainsKey(route))
             throw new InvalidOperationException(
                 $"Page with route '{route}' already exists.");
 
-        toggleItem.AddAction(
-            new ToggleBehavior<TView>(
-                toggleItem.View,
-                (_) => Navigate(route),
-                (_) => { },
-                ToggleTrigger.BusinessAction));
-
-        _pages[route] = pageFactory;
-        _bottomBarBorder.View.AddItem(toggleItem);
+        _pageShellFactories[route] = pageShellFactory;
+        _bottomBarBorder.View.ItemsSource = _pageShellFactories.Keys.ToList();
 
         if (_contentHost.Content is null)
-        {
-            _bottomBarBorder.View.SelectedItem = toggleItem;
-            Navigate(route);
-        }
+            _bottomBarBorder.View.SelectedItem = route;
     }
 
 
 
     public void Navigate(string route)
     {
-        if (!_pages.TryGetValue(route, out var factory))
+        if (!_pageShellFactories.TryGetValue(route, out var pageShellFactory))
             return;
-
-        var page = factory();
-
+        var page = pageShellFactory.PageFactory.Invoke();
         _contentHost.Content = page.Content;
     }
 
     public void Dispose()
     {
-        _uiServices.WindowService.PropertyChanged -= OnWindowsPropertyChanged;
+        _componentStore.UiServices.WindowService.PropertyChanged -= OnWindowsPropertyChanged;
     }
 }

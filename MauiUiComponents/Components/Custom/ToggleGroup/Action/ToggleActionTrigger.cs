@@ -1,6 +1,6 @@
 ﻿namespace MauiUiComponents;
 
-public enum ToggleTrigger
+public enum ToggleActionTrigger
 {
     /// <summary>
     /// Применяется при создании элемента или первой инициализации.
