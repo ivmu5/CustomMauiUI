@@ -42,7 +42,7 @@ public class SettingsPage : BasePage<ScrollView>
             }
         };
 
-        AddChildren(_layout);
+        HostLayout.Content = _layout;
     }
 
     private async void OnSaveButtonClicked(object? sender, EventArgs e)

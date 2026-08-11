@@ -131,5 +131,41 @@ namespace MauiUiSettings.Resources.Localization.MaterialSymbols {
                 return ResourceManager.GetString("Settings", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string WindowClose {
+            get {
+                return ResourceManager.GetString("WindowClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string WindowCloseFull {
+            get {
+                return ResourceManager.GetString("WindowCloseFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string WindowMinimize {
+            get {
+                return ResourceManager.GetString("WindowMinimize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на .
+        /// </summary>
+        public static string WindowOpenInFull {
+            get {
+                return ResourceManager.GetString("WindowOpenInFull", resourceCulture);
+            }
+        }
     }
 }

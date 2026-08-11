@@ -61,6 +61,31 @@ public static class BindingExtensions
         return bindable;
     }
 
+    public static TBindableObject Unbind<TBindableObject, TValue>(
+        this TBindableObject bindable,
+        Expression<Func<TBindableObject, TValue>> bindablePropertyExpression,
+        TValue value)
+        where TBindableObject : BindableObject
+    {
+        var property = bindablePropertyExpression.GetBindableProperty();
+
+        return bindable
+            .Unbind(property, value);
+    }
+
+    public static TBindableObject Unbind<TBindableObject>(
+        this TBindableObject bindable,
+        BindableProperty bindableProperty,
+        object? value)
+        where TBindableObject : BindableObject
+    {
+        bindable.RemoveBinding(bindableProperty);
+        bindable.SetValue(bindableProperty, value);
+
+        return bindable;
+    }
+
+
 
     public static BindableProperty GetBindableProperty(
         this Type type,

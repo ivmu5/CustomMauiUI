@@ -6,6 +6,8 @@ namespace MauiUiComponents;
 public class CustomShell<TView> : BasePage<Grid>, IDisposable
     where TView : View, ITextComponent, new()
 {
+    #region Fields
+
     private readonly Grid _rootGrid;
     private readonly ScrollView _contentScrollView;
     private readonly ContentView _contentHost;
@@ -13,9 +15,17 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
     private readonly Dictionary<string, PageShellFactory> _pageShellFactories = new();
 
+    #endregion
+
+    #region Properties
+
     public WindowOrientation CurrentOrientation { get; private set; }
 
+    public CustomTitleBar TitleBar { get; }
 
+    #endregion
+
+    #region Constructor
 
     public CustomShell(ComponentStore componentStore)
         : base(componentStore)
@@ -23,45 +33,82 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _rootGrid = new();
         _contentHost = new();
         _contentScrollView = new();
-        _bottomBarBorder = componentStore.Custom.ToggleGroup
-            .ToggleGroup<string, FlexLayout>(
-                new List<string>(),
-                route =>
-                {
-                    var toggleItem = new ToggleItem<TView>();
+        _bottomBarBorder = CreateBottomBar();
 
-                    return toggleItem;
-                })
-            .WithBorder(_componentStore)
-            .ColorBackgroundBind(_componentStore.UiServices/*, ColorVariant.Blur*/);
+        TitleBar = new(_componentStore);
 
         BuildLayout();
     }
 
-    private void BuildLayout()
+    #endregion
+
+    #region Layout
+
+    private BaseBorder<ToggleGroup<string, FlexLayout>> CreateBottomBar()
     {
-        _bottomBarBorder
+        return _componentStore.Custom.ToggleGroup
+            .ToggleGroup<string, FlexLayout>(
+                new List<string>(),
+                _ => new ToggleItem<TView>())
+            .WithBorder(_componentStore)
+            .ColorBackgroundBind(
+                _componentStore.UiServices,
+                ColorVariant.Blur)
             .ViewCenter()
             .ViewAddShadow(
-                    radius: 10f,
-                    offsetX: 0f,
-                    offsetY: 0f);
+                radius: 10f,
+                offsetX: 0f,
+                offsetY: 0f);
+    }
 
+    private void BuildLayout()
+    {
         _contentScrollView.Content = _contentHost;
 
-        _rootGrid.AddChild(_contentScrollView);
-        _rootGrid.AddChild(_bottomBarBorder);
+        _rootGrid
+            .AddChild(_contentScrollView)
+            .AddChild(_bottomBarBorder);
 
-        AddChildren(_rootGrid);
+        ConfigureHostLayout();
+        ConfigureBottomBar();
 
-        ApplyOrientation(_componentStore.UiServices.WindowService.Orientation);
+        _componentStore.UiServices.WindowService.PropertyChanged +=
+            OnWindowPropertyChanged;
+    }
 
+    private void ConfigureHostLayout()
+    {
+#if WINDOWS
+        HostLayout
+            .AddAutoRow()
+            .AddStarRow();
+
+        HostLayout
+            .AddChild(_rootGrid)
+            .AddChild(TitleBar);
+
+        _rootGrid.GridRowSpan(2);
+
+        TitleBar.SizeChanged += OnTitleBarSizeChanged;
+#else
+        HostLayout.AddChild(_rootGrid);
+
+        ApplyOrientation(
+            _componentStore.UiServices.WindowService.Orientation);
+#endif
+    }
+
+    private void ConfigureBottomBar()
+    {
         _bottomBarBorder.View.ItemTemplate =
-            (item) =>
+            item =>
             {
-                var pageShellFactory = _pageShellFactories[item];
+                var pageShellFactory =
+                    _pageShellFactories[item];
 
-                var toggleItem = pageShellFactory.PageButtonFactory.Invoke();
+                var toggleItem =
+                    pageShellFactory.PageButtonFactory.Invoke();
+
                 toggleItem.AddAction(
                     new ToggleAction<View>(
                         toggleItem.View,
@@ -71,19 +118,43 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
                 return toggleItem;
             };
-
-        _componentStore.UiServices.WindowService.PropertyChanged += OnWindowsPropertyChanged;
     }
 
-    private void OnWindowsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    #endregion
+
+    #region TitleBar
+
+#if WINDOWS
+
+    private void OnTitleBarSizeChanged(
+        object? sender,
+        EventArgs e)
+    {
+        TitleBar.SizeChanged -= OnTitleBarSizeChanged;
+
+        ApplyOrientation(
+            _componentStore.UiServices.WindowService.Orientation);
+    }
+
+#endif
+
+    #endregion
+
+    #region Orientation
+
+    private void OnWindowPropertyChanged(
+        object? sender,
+        PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(WindowService.Orientation))
             return;
 
-        SetOrientation(_componentStore.UiServices.WindowService.Orientation);
+        SetOrientation(
+            _componentStore.UiServices.WindowService.Orientation);
     }
 
-    public void SetOrientation(WindowOrientation orientation)
+    public void SetOrientation(
+        WindowOrientation orientation)
     {
         if (CurrentOrientation == orientation)
             return;
@@ -91,11 +162,14 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         ApplyOrientation(orientation);
     }
 
-    private void ApplyOrientation(WindowOrientation orientation)
+    private void ApplyOrientation(
+        WindowOrientation orientation)
     {
         CurrentOrientation = orientation;
 
-        switch (CurrentOrientation)
+        ResetLayout();
+
+        switch (orientation)
         {
             case WindowOrientation.Horizontal:
                 ConfigureLandscape();
@@ -107,15 +181,23 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         }
     }
 
-    private void ConfigurePortrait()
+    private void ResetLayout()
     {
         _rootGrid.RowDefinitions.Clear();
         _rootGrid.ColumnDefinitions.Clear();
 
+        _contentScrollView.Padding = 0;
+        _contentScrollView.Margin = 0;
+
+        _bottomBarBorder.Padding = 0;
+        _bottomBarBorder.Margin = 0;
+    }
+
+    private void ConfigurePortrait()
+    {
         _rootGrid
             .AddStarRow()
             .AddAutoRow();
-
 
         _contentScrollView
             .GridPosition(0, 0)
@@ -124,67 +206,111 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _bottomBarBorder
             .GridPosition(1, 0);
 
-        _contentHost.Padding = 10;
-        _bottomBarBorder.Margin = 10;
+        _contentScrollView.Padding =
+            CreateContentPadding(10);
 
-        _bottomBarBorder.View.ToggleLayout.FlexRow();
+        _bottomBarBorder.Margin =
+            new Thickness(10);
 
-        _componentStore.UiServices.StatusBarService.IsVisible = true;
+        _bottomBarBorder.View
+            .ToggleLayout
+            .FlexRow();
 
-        SnackbarService.SetBaseAnchor(_bottomBarBorder);
+        _componentStore.UiServices
+            .StatusBarService
+            .IsVisible = true;
+
+        SnackbarService.SetBaseAnchor(
+            _bottomBarBorder);
     }
 
     private void ConfigureLandscape()
     {
-        _rootGrid.RowDefinitions.Clear();
-        _rootGrid.ColumnDefinitions.Clear();
-
         _rootGrid
             .AddAutoColumn()
             .AddStarColumn();
-
 
         _bottomBarBorder
             .GridPosition(0, 0);
 
         _contentScrollView
-            .GridPosition(0, 1)
-            .GridRowSpan(0);
+            .GridPosition(0, 1);
 
-        _contentScrollView.Padding = new Thickness(5, 10, 10, 10);
-        _bottomBarBorder.Margin = new Thickness(10, 10, 5, 10); ;
+        _contentScrollView.Padding =
+            CreateContentPadding(5);
 
-        _bottomBarBorder.View.ToggleLayout.FlexColumn();
+        _bottomBarBorder.Margin =
+            new Thickness(
+                10,
+                10,
+                5,
+                10);
 
-        _componentStore.UiServices.StatusBarService.IsVisible = false;
+        _bottomBarBorder.View
+            .ToggleLayout
+            .FlexColumn();
+
+        _componentStore.UiServices
+            .StatusBarService
+            .IsVisible = false;
 
         SnackbarService.SetBaseAnchor();
     }
+
+    private Thickness CreateContentPadding(
+        double left)
+    {
+        var titleBarHeight = TitleBar.Height;
+
+        if (titleBarHeight <= 0)
+            titleBarHeight = 10;
+
+        return new Thickness(
+            left,
+            titleBarHeight,
+            10,
+            10);
+    }
+
+    #endregion
+
+    #region Pages
 
     public void AddIconPage(
         Func<ContentPage> pageFactory,
         string iconName,
         string route)
     {
-        var toggleItem = _componentStore.Custom.ToggleGroup
-            .BaseIconToggleView<TView>(iconName);
+        var toggleItem =
+            _componentStore.Custom.ToggleGroup
+                .BaseIconToggleView<TView>(iconName);
+
         toggleItem.AddAction(
-                _componentStore.Custom.ToggleGroup.Styles.ToggleBackgroundColor(toggleItem.View));
+            _componentStore.Custom.ToggleGroup.Styles
+                .ToggleBackgroundColor(toggleItem.View));
 
-        var pageShellFactory = new PageShellFactory(
-            pageFactory,
-            () =>
-            {
-                var toggleButton = new ToggleItem<BaseButton>(
-                    _componentStore.Base.Button(fontVariant: FontVariant.Icon));
-                toggleButton.View.TextIconBind(_componentStore, iconName);
-
-                return toggleButton;
-            });
+        var pageShellFactory =
+            new PageShellFactory(
+                pageFactory,
+                () => CreatePageButton(iconName));
 
         AddPage(
             pageShellFactory,
             route);
+    }
+
+    private ToggleItem<BaseButton> CreatePageButton(
+        string iconName)
+    {
+        var button =
+            _componentStore.Base
+                .Button(fontVariant: FontVariant.Icon);
+
+        button.TextIconBind(
+            _componentStore,
+            iconName);
+
+        return new ToggleItem<BaseButton>(button);
     }
 
     public void AddPage(
@@ -192,28 +318,54 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         string route)
     {
         if (_pageShellFactories.ContainsKey(route))
+        {
             throw new InvalidOperationException(
                 $"Page with route '{route}' already exists.");
+        }
 
-        _pageShellFactories[route] = pageShellFactory;
-        _bottomBarBorder.View.ItemsSource = _pageShellFactories.Keys.ToList();
+        _pageShellFactories[route] =
+            pageShellFactory;
+
+        _bottomBarBorder.View.ItemsSource =
+            _pageShellFactories.Keys.ToList();
 
         if (_contentHost.Content is null)
-            _bottomBarBorder.View.SelectedItem = route;
+        {
+            _bottomBarBorder.View.SelectedItem =
+                route;
+        }
     }
-
-
 
     public void Navigate(string route)
     {
-        if (!_pageShellFactories.TryGetValue(route, out var pageShellFactory))
+        if (!_pageShellFactories.TryGetValue(
+                route,
+                out var pageShellFactory))
+        {
             return;
-        var page = pageShellFactory.PageFactory.Invoke();
-        _contentHost.Content = page.Content;
+        }
+
+        var page =
+            pageShellFactory.PageFactory.Invoke();
+
+        _contentHost.Content =
+            page.Content;
     }
+
+    #endregion
+
+    #region Dispose
 
     public void Dispose()
     {
-        _componentStore.UiServices.WindowService.PropertyChanged -= OnWindowsPropertyChanged;
+        _componentStore.UiServices
+            .WindowService
+            .PropertyChanged -= OnWindowPropertyChanged;
+
+#if WINDOWS
+        TitleBar.SizeChanged -= OnTitleBarSizeChanged;
+#endif
     }
+
+    #endregion
 }

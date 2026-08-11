@@ -16,7 +16,7 @@ public class BasePage<TLayout> : ContentPage
 
     protected internal ComponentStore _componentStore;
 
-    private readonly Grid _rootLayout;
+    public readonly Grid _rootLayout;
     public readonly TLayout HostLayout;
 
     public IOverlayService OverlayService { get; }
@@ -44,23 +44,5 @@ public class BasePage<TLayout> : ContentPage
             _componentStore.UiServices,
             x => x.BackgroundColor,
             ColorVariant.Background);
-    }
-
-    public void AddChildren(params View[] views)
-    {
-        switch (HostLayout)
-        {
-            case Layout layout:
-                foreach (var view in views)
-                    layout.Add(view);
-                break;
-
-            case ScrollView contentView:
-                contentView.Content = views.FirstOrDefault();
-                break;
-
-            default:
-                throw new InvalidOperationException("Unsupported layout type.");
-        }
     }
 }

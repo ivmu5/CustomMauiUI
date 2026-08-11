@@ -16,7 +16,7 @@ public class ColorDictionary : BaseEntity<ColorDictionary>
     public const string TertiaryDarkArgb = "#FF3A3D48";
     public const string TextDarkArgb = "#FFFFFFFF";
     public const string BackgroundDarkArgb = "#FF000000";
-    public const string BlurDarkArgb = "#E0000000"; // "#40000000"
+    public const string BlurDarkArgb = "#D0000000"; // "#40000000"
 
     //Background	#16181D
     //Surface	#1E222A
