@@ -25,6 +25,8 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
     #endregion
 
+
+
     #region Constructor
 
     public CustomShell(ComponentStore componentStore)
@@ -36,7 +38,6 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _bottomBarBorder = CreateBottomBar();
 
         TitleBar = new(_componentStore);
-
         BuildLayout();
     }
 
@@ -78,7 +79,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
     private void ConfigureHostLayout()
     {
-#if WINDOWS
+
         HostLayout
             .AddAutoRow()
             .AddStarRow();
@@ -90,12 +91,6 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         _rootGrid.GridRowSpan(2);
 
         TitleBar.SizeChanged += OnTitleBarSizeChanged;
-#else
-        HostLayout.AddChild(_rootGrid);
-
-        ApplyOrientation(
-            _componentStore.UiServices.WindowService.Orientation);
-#endif
     }
 
     private void ConfigureBottomBar()
@@ -107,7 +102,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
                     _pageShellFactories[item];
 
                 var toggleItem =
-                    pageShellFactory.PageButtonFactory.Invoke();
+                    pageShellFactory.PageButtonFactory();
 
                 toggleItem.AddAction(
                     new ToggleAction<View>(
@@ -124,19 +119,17 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
     #region TitleBar
 
-#if WINDOWS
 
     private void OnTitleBarSizeChanged(
         object? sender,
         EventArgs e)
     {
         TitleBar.SizeChanged -= OnTitleBarSizeChanged;
+        TitleBar.LogoView.HeightRequest = TitleBar.Height;
 
         ApplyOrientation(
             _componentStore.UiServices.WindowService.Orientation);
     }
-
-#endif
 
     #endregion
 
@@ -185,6 +178,14 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     {
         _rootGrid.RowDefinitions.Clear();
         _rootGrid.ColumnDefinitions.Clear();
+
+        _contentScrollView
+            .GridPosition(0, 0)
+            .GridRowSpan(1);
+
+        _bottomBarBorder
+            .GridPosition(0, 0)
+            .GridRowSpan(1);
 
         _contentScrollView.Padding = 0;
         _contentScrollView.Margin = 0;
@@ -258,16 +259,13 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
     }
 
     private Thickness CreateContentPadding(
-        double left)
+        double left = 10,
+        double right = 10,
+        double bottom = 10)
     {
-        var titleBarHeight = TitleBar.Height;
-
-        if (titleBarHeight <= 0)
-            titleBarHeight = 10;
-
         return new Thickness(
             left,
-            titleBarHeight,
+            Math.Max(TitleBar.Height, 10),
             10,
             10);
     }
@@ -317,14 +315,16 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         PageShellFactory pageShellFactory,
         string route)
     {
-        if (_pageShellFactories.ContainsKey(route))
+        ArgumentNullException.ThrowIfNull(pageShellFactory);
+        ArgumentException.ThrowIfNullOrWhiteSpace(route);
+
+        if (!_pageShellFactories.TryAdd(
+            route,
+            pageShellFactory))
         {
             throw new InvalidOperationException(
                 $"Page with route '{route}' already exists.");
         }
-
-        _pageShellFactories[route] =
-            pageShellFactory;
 
         _bottomBarBorder.View.ItemsSource =
             _pageShellFactories.Keys.ToList();
@@ -338,6 +338,8 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
 
     public void Navigate(string route)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(route);
+
         if (!_pageShellFactories.TryGetValue(
                 route,
                 out var pageShellFactory))
@@ -346,7 +348,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
         }
 
         var page =
-            pageShellFactory.PageFactory.Invoke();
+            pageShellFactory.PageFactory();
 
         _contentHost.Content =
             page.Content;
@@ -362,9 +364,7 @@ public class CustomShell<TView> : BasePage<Grid>, IDisposable
             .WindowService
             .PropertyChanged -= OnWindowPropertyChanged;
 
-#if WINDOWS
         TitleBar.SizeChanged -= OnTitleBarSizeChanged;
-#endif
     }
 
     #endregion

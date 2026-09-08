@@ -7,75 +7,114 @@ namespace MauiUiComponents;
 public class CustomTitleBar : ContentView
 {
     private readonly ComponentStore _componentStore;
-
     private readonly Grid _rootGrid;
+
+    private BaseButton _minimizeButton = null!;
+    private BaseButton _maximizeButton = null!;
+    private BaseButton _closeButton = null!;
 
     public ContentView LogoView { get; }
     public Grid CustomContent { get; }
 
-    public BaseButton MinimizeButton { get; }
-    public BaseButton MaximizeButton { get; }
-    public BaseButton CloseButton { get; }
-
+    private bool IsDesktopPlatform =>
+        DeviceInfo.Platform == DevicePlatform.WinUI || DeviceInfo.Platform == DevicePlatform.MacCatalyst;
 
 
     public CustomTitleBar(ComponentStore componentStore)
     {
         _componentStore = componentStore;
+
+        LogoView = new ContentView()
+        {
+            MaximumHeightRequest = 40,
+            Margin = new Thickness(10, 2.5, 10, 2.5)
+        };
+        CustomContent = new Grid();
+
+        InitializeButtons();
+
         _rootGrid = new Grid();
+
+        ConfigureLayout();
+        ConfigureEvents();
+
+        this.ColorBackgroundBind(
+            _componentStore.UiServices,
+            ColorVariant.Blur);
+
+        Content = _rootGrid;
+        _componentStore.UiServices.WindowService.SetCustomTitleBar(this);
+    }
+
+
+    private void InitializeButtons()
+    {
+        _minimizeButton = _componentStore.Base
+            .Button(ColorVariant.Blur, FontVariant.Icon)
+            .TextIconBind(
+                _componentStore,
+                nameof(MaterialSymbols.WindowMinimize))
+            .Unbind(x => x.FontSize, 16);
+
+        _maximizeButton = _componentStore.Base
+            .Button(ColorVariant.Blur, FontVariant.Icon)
+            .Unbind(x => x.FontSize, 16);
+
+        _closeButton = _componentStore.Base
+            .Button(ColorVariant.Blur, FontVariant.Icon)
+            .TextIconBind(
+                _componentStore,
+                nameof(MaterialSymbols.WindowClose))
+            .Unbind(x => x.FontSize, 16);
+
+        UpdateMaximizeIcon();
+    }
+
+
+    private void ConfigureLayout()
+    {
+        _rootGrid.RowDefinitions.Clear();
+        _rootGrid.ColumnDefinitions.Clear();
 
         _rootGrid
             .AddAutoColumn()
-            .AddStarColumn()
+            .AddStarColumn();
+
+        _rootGrid
+            .AddChild(LogoView, 0, 0)
+            .AddChild(CustomContent, 0, 1);
+
+        if (!IsDesktopPlatform)
+            return;
+
+        _rootGrid
             .AddAutoColumn()
             .AddAutoColumn()
             .AddAutoColumn();
 
-        _rootGrid.ColorBackgroundBind(
-            componentStore.UiServices,
-            ColorVariant.Blur);
+        _rootGrid
+            .AddChild(_minimizeButton, 0, 2)
+            .AddChild(_maximizeButton, 0, 3)
+            .AddChild(_closeButton, 0, 4);
+    }
 
-        LogoView = new ContentView();
-        CustomContent = new Grid();
 
-        MinimizeButton = componentStore.Base
-            .Button(ColorVariant.Blur, FontVariant.Icon)
-            .TextIconBind(_componentStore, nameof(MaterialSymbols.WindowMinimize))
-            .Unbind(x => x.FontSize, 16);
-
-        MaximizeButton = componentStore.Base
-            .Button(ColorVariant.Blur, FontVariant.Icon)
-            .TextIconBind(_componentStore, nameof(MaterialSymbols.WindowOpenInFull))
-            .Unbind(x => x.FontSize, 16);
-
-        CloseButton = componentStore.Base
-            .Button(ColorVariant.Blur, FontVariant.Icon)
-            .TextIconBind(_componentStore, nameof(MaterialSymbols.WindowClose))
-            .Unbind(x => x.FontSize, 16);
-
+    private void ConfigureEvents()
+    {
         var windowService = _componentStore.UiServices.WindowService;
 
-        MinimizeButton.Clicked += (_, _) =>
+        _minimizeButton.Clicked += (_, _) =>
             windowService.Minimize();
 
-        MaximizeButton.Clicked += (_, _) =>
+        _maximizeButton.Clicked += (_, _) =>
             windowService.ToggleMaximize();
 
-        CloseButton.Clicked += (_, _) =>
+        _closeButton.Clicked += (_, _) =>
             windowService.Close();
 
-        _rootGrid
-            .AddChild(LogoView, 0, 0)
-            .AddChild(CustomContent, 0, 1)
-            .AddChild(MinimizeButton, 0, 2)
-            .AddChild(MaximizeButton, 0, 3)
-            .AddChild(CloseButton, 0, 4);
-
-        Content = _rootGrid;
-
         windowService.PropertyChanged += OnWindowPropertyChanged;
-        _componentStore.UiServices.WindowService.SetCustomTitleBar(this);
     }
+
 
     private void OnWindowPropertyChanged(
         object? sender,
@@ -87,13 +126,13 @@ public class CustomTitleBar : ContentView
         UpdateMaximizeIcon();
     }
 
+
     private void UpdateMaximizeIcon()
     {
-        MaximizeButton
-            .TextIconBind(
+        _maximizeButton.TextIconBind(
             _componentStore,
-                _componentStore.UiServices.WindowService.IsMaximized
-                    ? nameof(MaterialSymbols.WindowCloseFull)
-                    : nameof(MaterialSymbols.WindowOpenInFull));
+            _componentStore.UiServices.WindowService.IsMaximized
+                ? nameof(MaterialSymbols.WindowCloseFull)
+                : nameof(MaterialSymbols.WindowOpenInFull));
     }
 }

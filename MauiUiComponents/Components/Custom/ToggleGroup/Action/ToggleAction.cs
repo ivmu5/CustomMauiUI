@@ -1,5 +1,8 @@
-﻿namespace MauiUiComponents;
+﻿using System.Diagnostics;
 
+namespace MauiUiComponents;
+
+[DebuggerDisplay("{ActionName,nq}")]
 public class ToggleAction<TView> : IToggleAction
     where TView : View
 {
