@@ -1,39 +1,80 @@
-﻿using MauiUiSettings;
+﻿namespace MauiUiComponents;
 
-namespace MauiUiComponents;
-
-public class BasePage<TLayout> : ContentPage
+/// <summary>
+/// Базовое представление библиотеки MauiUiComponents,
+/// содержащее основной пользовательский layout
+/// и слой для отображения overlay-компонентов.
+/// </summary>
+/// <typeparam name="TLayout">
+/// Тип основного контейнера представления.
+/// </typeparam>
+public class BasePage<TLayout> : ContentView
     where TLayout : View, new()
 {
-    protected internal ComponentStore _componentStore;
+    #region Fields
 
-    private readonly Grid _rootLayout;
-    public readonly TLayout HostLayout;
+    /// <summary>
+    /// Центральное хранилище UI-компонентов и сервисов,
+    /// доступное наследникам.
+    /// </summary>
+    protected internal readonly ComponentStore _componentStore;
 
-    public IOverlayService OverlayService { get; }
+    private readonly Grid _rootGrid;
 
+    #endregion
 
+    #region Properties
 
-    public BasePage(ComponentStore componentStore)
+    /// <summary>
+    /// Получает основной контейнер содержимого представления.
+    /// </summary>
+    public TLayout HostLayout { get; }
+
+    /// <summary>
+    /// Получает сервис управления overlay-компонентами
+    /// текущего представления.
+    /// </summary>
+    public OverlayService OverlayService { get; }
+
+    #endregion
+
+    #region Constructor
+
+    /// <summary>
+    /// Создаёт базовое представление с основным содержимым
+    /// и отдельным overlay-слоем.
+    /// </summary>
+    /// <param name="componentStore">
+    /// Центральное хранилище UI-компонентов и сервисов.
+    /// </param>
+    public BasePage(
+        ComponentStore componentStore)
     {
-        _componentStore = componentStore;
+        ArgumentNullException.ThrowIfNull(componentStore);
 
-        _rootLayout = new Grid();
+        _componentStore =
+            componentStore;
 
-        HostLayout = new TLayout();
+        _rootGrid =
+            new Grid();
 
-        _rootLayout.AddChild(HostLayout);
+        HostLayout =
+            new TLayout();
 
-        Content = _rootLayout;
+        OverlayService =
+            new OverlayService(
+                _rootGrid,
+                componentStore);
 
+        _rootGrid.Add(
+            HostLayout);
 
-        OverlayService = new OverlayService(
-            _rootLayout,
-            componentStore);
+        Content =
+            _rootGrid;
 
-        this.ColorBind(
-            _componentStore.UiServices,
-            x => x.BackgroundColor,
-            ColorVariant.Background);
+        this.ColorBackgroundBind(
+            componentStore.UiServices);
     }
+
+    #endregion
 }

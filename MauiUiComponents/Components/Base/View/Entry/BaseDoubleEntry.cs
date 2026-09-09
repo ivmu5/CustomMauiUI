@@ -1,51 +1,125 @@
-﻿namespace MauiUiComponents;
+﻿using System.Globalization;
 
-public class BaseDoubleEntry : BaseEntry<double>
+namespace MauiUiComponents;
+
+/// <summary>
+/// Типизированное поле ввода для чисел с плавающей точкой.
+/// </summary>
+/// <remarks>
+/// Поддерживает ввод цифр, ведущего знака минус
+/// и одного десятичного разделителя.
+/// Точка и запятая автоматически приводятся
+/// к разделителю текущей культуры.
+/// </remarks>
+public sealed class BaseDoubleEntry :
+    BaseEntry<double>
 {
+    #region Constructor
+
+    /// <summary>
+    /// Создаёт поле ввода числа с плавающей точкой
+    /// и настраивает числовую клавиатуру.
+    /// </summary>
     public BaseDoubleEntry()
-        : base()
     {
-        Keyboard = Keyboard.Numeric;
+        Keyboard =
+            Keyboard.Numeric;
     }
 
-    public override double Parse(string input)
+    #endregion
+
+    #region Conversion
+
+    /// <summary>
+    /// Пытается преобразовать текст
+    /// в значение типа <see cref="double"/>.
+    /// </summary>
+    protected override bool Parse(
+        string text,
+        out double value)
     {
-        return double.TryParse(input, out var value)
-            ? value
-            : 0;
+        return double.TryParse(
+            text,
+            NumberStyles.Float,
+            CultureInfo.CurrentCulture,
+            out value);
     }
 
-    public override string Filter(string input)
+    /// <summary>
+    /// Преобразует числовое значение
+    /// в текст с использованием текущей культуры.
+    /// </summary>
+    protected override string Format(
+        double value)
     {
-        if (string.IsNullOrEmpty(input))
+        return value.ToString(
+            CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>
+    /// Удаляет недопустимые символы из пользовательского ввода
+    /// и нормализует десятичный разделитель.
+    /// </summary>
+    protected override string Filter(
+        string text)
+    {
+        if (string.IsNullOrEmpty(text))
             return string.Empty;
 
-        var result = new System.Text.StringBuilder();
+        var decimalSeparator =
+            CultureInfo.CurrentCulture
+                .NumberFormat
+                .NumberDecimalSeparator;
 
-        bool hasDot = false;
+        var result =
+            new List<char>(
+                text.Length);
 
-        foreach (var c in input)
+        var hasDecimalSeparator =
+            false;
+
+        for (var i = 0; i < text.Length; i++)
         {
-            if (char.IsDigit(c))
+            var character =
+                text[i];
+
+            if (char.IsDigit(character))
             {
-                result.Append(c);
+                result.Add(
+                    character);
+
+                continue;
             }
-            else if (c == '.' && !hasDot)
+
+            if (character == '-' &&
+                i == 0)
             {
-                result.Append(c);
-                hasDot = true;
+                result.Add(
+                    character);
+
+                continue;
             }
-            else if (c == '-' && result.Length == 0)
+
+            if ((character == '.' ||
+                 character == ',') &&
+                !hasDecimalSeparator)
             {
-                result.Append(c);
+                /*
+                 * Пользователь может ввести как точку,
+                 * так и запятую. Внутри Entry всегда используем
+                 * разделитель текущей культуры.
+                 */
+                result.Add(
+                    decimalSeparator[0]);
+
+                hasDecimalSeparator =
+                    true;
             }
         }
 
-        return result.ToString();
+        return new string(
+            result.ToArray());
     }
 
-    public override string Format(double value)
-    {
-        return value.ToString();
-    }
+    #endregion
 }
